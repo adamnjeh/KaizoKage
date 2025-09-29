@@ -1,8 +1,8 @@
 # KaizoKage — Communauté de collectionneurs de figures d’anime
 
 ## Nomenclature
-- [objet] → Figure
-- [inventaire] → Collection
+- [objet] → Figurine
+- [inventaire] → Vitrine
 - [galerie] → Galerie
 - Utilisateur → Member
 
