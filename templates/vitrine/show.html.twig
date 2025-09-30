@@ -1,0 +1,23 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Vitrine n°{{ vitrine.id }}{% endblock %}
+
+{% block body %}
+  <a href="{{ path('app_vitrine_index') }}">← Retour à la liste</a>
+
+  <h1>Vitrine n°{{ vitrine.id }}</h1>
+  <p><strong>Description :</strong> {{ vitrine.description }}</p>
+
+  <h2>Figurines</h2>
+  {% if vitrine.figurines is defined and vitrine.figurines|length > 0 %}
+    <ul>
+      {% for f in vitrine.figurines %}
+        <li>
+          <a href="{{ path('app_figurine_show', { id: f.id }) }}">{{ f.nom }}</a>
+        </li>
+      {% endfor %}
+    </ul>
+  {% else %}
+    <p>Aucune figurine dans cette vitrine.</p>
+  {% endif %}
+{% endblock %}
