@@ -1,0 +1,21 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Liste des vitrines{% endblock %}
+
+{% block body %}
+  <h1>Liste des vitrines</h1>
+
+  {% if vitrines is empty %}
+    <p>Aucune vitrine.</p>
+  {% else %}
+    <ul>
+      {% for v in vitrines %}
+        <li>
+          <a href="{{ path('app_vitrine_show', { id: v.id }) }}">
+            {{ v.description }}
+          </a>
+        </li>
+      {% endfor %}
+    </ul>
+  {% endif %}
+{% endblock %}

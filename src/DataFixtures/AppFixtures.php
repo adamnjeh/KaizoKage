@@ -2,51 +2,49 @@
 
 namespace App\DataFixtures;
 
-use App\Entity\Vitrine;
 use App\Entity\Figurine;
+use App\Entity\Vitrine;
 use Doctrine\Bundle\FixturesBundle\Fixture;
 use Doctrine\Persistence\ObjectManager;
 
-class AppFixtures extends Fixture
+final class AppFixtures extends Fixture
 {
-    // références internes pour relier vite Figurines -> Vitrines
-    private const VITRINE_LUFFY = 'vitrine-luffy';
-    private const VITRINE_NARUTO = 'vitrine-naruto';
-    
     public function load(ObjectManager $manager): void
     {
-        // -- 1) Vitrines
-        $vitrines = [
-            [self::VITRINE_LUFFY,  "Vitrine One Piece (Mugiwara)"],
-            [self::VITRINE_NARUTO, "Vitrine Naruto (Konoha)"],
+        // --- Vitrine: One Piece ---
+        $onePiece = new Vitrine();
+        $onePiece->setDescription('Collection One Piece – personnages emblématiques en édition spéciale');
+        $manager->persist($onePiece);
+        
+        $onePieceFigurines = [
+            "Monkey D. Luffy (Gear Five)",
+            "Roronoa Zoro (Enma Dual Wield)",
+            "Nami (Clima-Tact Power-Up)",
         ];
         
-        foreach ($vitrines as [$ref, $desc]) {
-            $v = new Vitrine();
-            $v->setDescription($desc);
-            $manager->persist($v);
-            $manager->flush(); // pour avoir un id
-            $this->addReference($ref, $v);
+        foreach ($onePieceFigurines as $nom) {
+            $figurine = new Figurine();
+            $figurine->setNom($nom);
+            $figurine->setVitrine($onePiece);   // ✅ assign relation
+            $manager->persist($figurine);
         }
         
-        // -- 2) Figurines
-        $figurines = [
-            [self::VITRINE_LUFFY,  'Monkey D. Luffy (Gear 5)'],
-            [self::VITRINE_LUFFY,  'Roronoa Zoro (Enma)'],
-            [self::VITRINE_LUFFY,  'Nami (Clima-Tact)'],
-            
-            [self::VITRINE_NARUTO, 'Uzumaki Naruto (Sage Mode)'],
-            [self::VITRINE_NARUTO, 'Uchiha Sasuke (Rinnegan)'],
+        // --- Vitrine: Naruto ---
+        $naruto = new Vitrine();
+        $naruto->setDescription('Collection Naruto – moments iconiques de la saga');
+        $manager->persist($naruto);
+        
+        $narutoFigurines = [
+            "Uzumaki Naruto (Sage of Six Paths)",
+            "Sasuke Uchiha (Rinnegan)",
+            "Hatake Kakashi (Double Sharingan)",
         ];
         
-        foreach ($figurines as [$ref, $nom]) {
-            /** @var Vitrine $vitrine */
-            $vitrine = $this->getReference($ref, Vitrine::class);
-            
-            $f = new Figurine();
-            $f->setNom($nom);
-            $f->setVitrine($vitrine); // côté owning
-            $manager->persist($f);
+        foreach ($narutoFigurines as $nom) {
+            $figurine = new Figurine();
+            $figurine->setNom($nom);
+            $figurine->setVitrine($naruto);     // ✅ assign relation
+            $manager->persist($figurine);
         }
         
         $manager->flush();
