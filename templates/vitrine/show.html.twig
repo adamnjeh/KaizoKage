@@ -1,23 +1,24 @@
 {% extends 'base.html.twig' %}
-
-{% block title %}Vitrine n°{{ vitrine.id }}{% endblock %}
-
+{% block title %}Vitrine #{{ vitrine.id }}{% endblock %}
 {% block body %}
-  <a href="{{ path('app_vitrine_index') }}">← Retour à la liste</a>
+<div class="container py-4">
+  <a href="{{ path('vitrine_index') }}" class="btn btn-outline-secondary btn-sm mb-3">← Retour</a>
 
-  <h1>Vitrine n°{{ vitrine.id }}</h1>
-  <p><strong>Description :</strong> {{ vitrine.description }}</p>
+  <h1 class="h3 mb-1">Vitrine #{{ vitrine.id }}</h1>
+  <p class="text-muted mb-4">{{ vitrine.description }}</p>
 
-  <h2>Figurines</h2>
-  {% if vitrine.figurines is defined and vitrine.figurines|length > 0 %}
-    <ul>
+  <h2 class="h5 mb-3">Figurines</h2>
+  {% if vitrine.figurines|length == 0 %}
+    <div class="alert alert-info">Aucune figurine dans cette vitrine.</div>
+  {% else %}
+    <ul class="list-group">
       {% for f in vitrine.figurines %}
-        <li>
-          <a href="{{ path('app_figurine_show', { id: f.id }) }}">{{ f.nom }}</a>
+        <li class="list-group-item d-flex justify-content-between align-items-center">
+          <span>{{ f.nom }}</span>
+          <a class="btn btn-sm btn-outline-secondary" href="{{ path('figurine_show', { id: f.id }) }}">Voir</a>
         </li>
       {% endfor %}
     </ul>
-  {% else %}
-    <p>Aucune figurine dans cette vitrine.</p>
   {% endif %}
+</div>
 {% endblock %}
