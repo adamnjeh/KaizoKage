@@ -1,0 +1,42 @@
+{% extends 'base.html.twig' %}
+{% block title %}Figurines{% endblock %}
+{% block body %}
+<div class="container py-4">
+  <h1 class="h3 mb-3">Figurines</h1>
+
+  {% if figurines is empty %}
+    <div class="alert alert-info">Aucune figurine.</div>
+  {% else %}
+    <div class="table-responsive">
+      <table class="table table-striped align-middle">
+        <thead>
+          <tr>
+            <th>ID</th>
+            <th>Nom</th>
+            <th>Vitrine</th>
+            <th></th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for f in figurines %}
+            <tr>
+              <td>{{ f.id }}</td>
+              <td>{{ f.nom }}</td>
+              <td>
+                {% if f.vitrine %}
+                  <a href="{{ path('vitrine_show', { id: f.vitrine.id }) }}">Vitrine #{{ f.vitrine.id }}</a>
+                {% else %}
+                  —
+                {% endif %}
+              </td>
+              <td class="text-end">
+                <a class="btn btn-sm btn-outline-secondary" href="{{ path('figurine_show', { id: f.id }) }}">Voir</a>
+              </td>
+            </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  {% endif %}
+</div>
+{% endblock %}
