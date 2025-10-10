@@ -1,36 +1,80 @@
 {% extends 'base.html.twig' %}
 {% block title %}Vitrines{% endblock %}
+
 {% block body %}
 <div class="container py-4">
-  <h1 class="h3 mb-3">Vitrines</h1>
+  <div class="d-flex align-items-center justify-content-between mb-3">
+    <h1 class="h3 m-0">Vitrines</h1>
+
+    <div class="d-flex gap-2">
+      <select id="sort" class="form-select" style="max-width:240px">
+        <option value="default">Trier…</option>
+        <option value="name-asc">Description A→Z</option>
+        <option value="name-desc">Description Z→A</option>
+        <option value="count-desc">+ Figurines</option>
+        <option value="count-asc">– Figurines</option>
+      </select>
+    </div>
+  </div>
 
   {% if vitrines is empty %}
     <div class="alert alert-info">Aucune vitrine.</div>
   {% else %}
-    <div class="table-responsive">
-      <table class="table table-striped align-middle">
-        <thead>
-          <tr>
-            <th>ID</th>
-            <th>Description</th>
-            <th># Figurines</th>
-            <th></th>
-          </tr>
-        </thead>
-        <tbody>
-          {% for v in vitrines %}
-            <tr>
-              <td>{{ v.id }}</td>
-              <td>{{ v.description }}</td>
-              <td>{{ v.figurines|length }}</td>
-              <td class="text-end">
-                <a class="btn btn-sm btn-outline-secondary" href="{{ path('vitrine_show', { id: v.id }) }}">Voir</a>
-              </td>
-            </tr>
-          {% endfor %}
-        </tbody>
-      </table>
+    <div id="vit-grid" class="row g-3">
+      {% for v in vitrines %}
+        {% set count = v.figurines|length %}
+        <div class="col-12 col-sm-6 col-lg-4"
+             data-name="{{ v.description|default('')|lower }}"
+             data-count="{{ count }}">
+          <div class="card h-100 reveal">
+            <div class="ratio ratio-16x9 bg-white">
+              <img class="ratio-img" src="{{ asset(placeholder_img) }}" alt="Vitrine #{{ v.id }}">
+            </div>
+            <div class="card-body">
+              <div class="d-flex justify-content-between align-items-start">
+                <h2 class="h5 mb-1">{{ v.description }}</h2>
+                <span class="badge text-bg-primary">{{ count }}</span>
+              </div>
+              <p class="text-secondary small mb-0">ID : {{ v.id }}</p>
+              <a href="{{ path('vitrine_show', { id: v.id }) }}"
+                 class="stretched-link"
+                 aria-label="Voir Vitrine #{{ v.id }}"></a>
+            </div>
+          </div>
+        </div>
+      {% endfor %}
     </div>
   {% endif %}
 </div>
+{% endblock %}
+
+{% block javascripts %}
+<script>
+(function(){
+  const grid = document.getElementById('vit-grid');
+  if(!grid) return;
+  const items = Array.from(grid.children);
+  const sort = document.getElementById('sort');
+
+  function applySort(){
+    const by = sort.value;
+    const sorted = items.slice().sort((a,b)=>{
+      const an = a.dataset.name || '';
+      const bn = b.dataset.name || '';
+      const ac = parseInt(a.dataset.count || '0', 10);
+      const bc = parseInt(b.dataset.count || '0', 10);
+      switch(by){
+        case 'name-asc': return an.localeCompare(bn);
+        case 'name-desc': return bn.localeCompare(an);
+        case 'count-asc': return ac - bc;
+        case 'count-desc': return bc - ac;
+        default: return 0;
+      }
+    });
+    sorted.forEach(el => grid.appendChild(el));
+  }
+
+  sort.addEventListener('change', applySort);
+})();
+</script>
 {% endblock %}

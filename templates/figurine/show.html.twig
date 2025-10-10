@@ -4,19 +4,31 @@
 <div class="container py-4">
   <a href="{{ path('figurine_index') }}" class="btn btn-outline-secondary btn-sm mb-3">← Retour</a>
 
-  <h1 class="h3 mb-3">{{ figurine.nom }}</h1>
-  <dl class="row">
-    <dt class="col-sm-2">ID</dt>
-    <dd class="col-sm-10">{{ figurine.id }}</dd>
+  <div class="row g-4">
+    <div class="col-md-5">
+      <div class="ratio ratio-1x1 bg-white reveal">
+        <img class="ratio-img" src="{{ asset(placeholder_img) }}" alt="{{ figurine.nom }}">
+      </div>
+    </div>
+    <div class="col-md-7">
+      <h1 class="h3 mb-2">{{ figurine.nom }}</h1>
+      <dl class="row">
+        <dt class="col-sm-3">ID</dt>
+        <dd class="col-sm-9">{{ figurine.id }}</dd>
 
-    <dt class="col-sm-2">Vitrine</dt>
-    <dd class="col-sm-10">
-      {% if figurine.vitrine %}
-        <a href="{{ path('vitrine_show', { id: figurine.vitrine.id }) }}">Vitrine #{{ figurine.vitrine.id }}</a>
-      {% else %}
-        —
-      {% endif %}
-    </dd>
-  </dl>
+        <dt class="col-sm-3">Vitrine</dt>
+        <dd class="col-sm-9">
+          {% if figurine.vitrine %}
+            <a href="{{ path('vitrine_show', { id: figurine.vitrine.id }) }}">Vitrine #{{ figurine.vitrine.id }}</a>
+          {% else %}—{% endif %}
+        </dd>
+      </dl>
+
+      <div class="d-flex gap-2">
+        <button class="btn btn-primary" onclick="showToast('Ajouté au panier')"><i class="bi bi-bag"></i> Ajouter</button>
+        <button class="btn btn-outline-primary" onclick="showToast('Ajouté aux favoris')"><i class="bi bi-heart"></i> Favori</button>
+      </div>
+    </div>
+  </div>
 </div>
 {% endblock %}
