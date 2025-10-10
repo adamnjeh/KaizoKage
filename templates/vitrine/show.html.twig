@@ -4,21 +4,40 @@
 <div class="container py-4">
   <a href="{{ path('vitrine_index') }}" class="btn btn-outline-secondary btn-sm mb-3">← Retour</a>
 
-  <h1 class="h3 mb-1">Vitrine #{{ vitrine.id }}</h1>
-  <p class="text-muted mb-4">{{ vitrine.description }}</p>
+  <div class="d-flex align-items-center justify-content-between mb-2">
+    <div>
+      <h1 class="h3 mb-1">Vitrine #{{ vitrine.id }}</h1>
+      <p class="text-muted mb-0">{{ vitrine.description }}</p>
+    </div>
+    <span class="badge text-bg-primary align-self-start">{{ vitrine.figurines|length }} figurine(s)</span>
+  </div>
+
+  <hr class="my-4">
 
   <h2 class="h5 mb-3">Figurines</h2>
+
   {% if vitrine.figurines|length == 0 %}
     <div class="alert alert-info">Aucune figurine dans cette vitrine.</div>
   {% else %}
-    <ul class="list-group">
+    <div class="row g-3">
       {% for f in vitrine.figurines %}
-        <li class="list-group-item d-flex justify-content-between align-items-center">
-          <span>{{ f.nom }}</span>
-          <a class="btn btn-sm btn-outline-secondary" href="{{ path('figurine_show', { id: f.id }) }}">Voir</a>
-        </li>
+        <div class="col-6 col-md-4 col-lg-3">
+          <div class="card h-100 reveal">
+            <div class="ratio ratio-1x1 bg-white">
+              <img class="ratio-img" src="{{ asset(placeholder_img) }}" alt="{{ f.nom }}">
+            </div>
+            <div class="card-body d-flex flex-column">
+              <h3 class="h6 mb-2 text-truncate" title="{{ f.nom }}">{{ f.nom }}</h3>
+              <a href="{{ path('figurine_show', { id: f.id }) }}" class="stretched-link" aria-label="Voir {{ f.nom }}"></a>
+              <div class="mt-auto d-flex gap-2">
+                <a class="btn btn-sm btn-outline-secondary" href="{{ path('figurine_show', { id: f.id }) }}"><i class="bi bi-eye"></i></a>
+                <button class="btn btn-sm btn-outline-primary" onclick="showToast('Favori : {{ f.nom|e('js') }}')"><i class="bi bi-heart"></i></button>
+              </div>
+            </div>
+          </div>
+        </div>
       {% endfor %}
-    </ul>
+    </div>
   {% endif %}
 </div>
 {% endblock %}

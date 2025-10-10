@@ -1,4 +1,6 @@
 twig:
+    globals:
+        placeholder_img: 'UnderConstruction.jpg'  
     file_name_pattern: '*.twig'
 
 when@test:

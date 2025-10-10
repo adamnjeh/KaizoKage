@@ -1,42 +1,57 @@
 {% extends 'base.html.twig' %}
 {% block title %}Figurines{% endblock %}
+
 {% block body %}
 <div class="container py-4">
-  <h1 class="h3 mb-3">Figurines</h1>
+  <div class="d-flex align-items-center justify-content-between mb-3">
+    <h1 class="h3 m-0">Figurines</h1>
+    <input id="fig-search" type="search" class="form-control" placeholder="Rechercher une figurine…" style="max-width:320px">
+  </div>
 
   {% if figurines is empty %}
     <div class="alert alert-info">Aucune figurine.</div>
   {% else %}
-    <div class="table-responsive">
-      <table class="table table-striped align-middle">
-        <thead>
-          <tr>
-            <th>ID</th>
-            <th>Nom</th>
-            <th>Vitrine</th>
-            <th></th>
-          </tr>
-        </thead>
-        <tbody>
-          {% for f in figurines %}
-            <tr>
-              <td>{{ f.id }}</td>
-              <td>{{ f.nom }}</td>
-              <td>
+    <div id="fig-grid" class="row g-3">
+      {% for f in figurines %}
+        <div class="col-6 col-md-4 col-lg-3" data-name="{{ f.nom|lower }}">
+          <div class="card h-100 reveal">
+            <div class="ratio ratio-1x1 bg-white">
+              <img class="ratio-img" src="{{ asset(placeholder_img) }}" alt="{{ f.nom }}">
+            </div>
+            <div class="card-body d-flex flex-column">
+              <h2 class="h6 mb-1 text-truncate" title="{{ f.nom }}">{{ f.nom }}</h2>
+              <p class="text-secondary small mb-2">
+                Vitrine :
                 {% if f.vitrine %}
-                  <a href="{{ path('vitrine_show', { id: f.vitrine.id }) }}">Vitrine #{{ f.vitrine.id }}</a>
-                {% else %}
-                  —
-                {% endif %}
-              </td>
-              <td class="text-end">
-                <a class="btn btn-sm btn-outline-secondary" href="{{ path('figurine_show', { id: f.id }) }}">Voir</a>
-              </td>
-            </tr>
-          {% endfor %}
-        </tbody>
-      </table>
+                  <a href="{{ path('vitrine_show', { id: f.vitrine.id }) }}">#{{ f.vitrine.id }}</a>
+                {% else %}—{% endif %}
+              </p>
+              <a href="{{ path('figurine_show', { id: f.id }) }}" class="stretched-link" aria-label="Voir {{ f.nom }}"></a>
+              <div class="mt-auto d-flex gap-2">
+                <button class="btn btn-sm btn-outline-primary" onclick="showToast('Favori : {{ f.nom|e('js') }}')"><i class="bi bi-heart"></i></button>
+                <a class="btn btn-sm btn-outline-secondary" href="{{ path('figurine_show', { id: f.id }) }}"><i class="bi bi-eye"></i></a>
+              </div>
+            </div>
+          </div>
+        </div>
+      {% endfor %}
     </div>
   {% endif %}
 </div>
+{% endblock %}
+
+{% block javascripts %}
+<script>
+(function(){
+  const q = document.getElementById('fig-search');
+  if(!q) return;
+  const cards = Array.from(document.querySelectorAll('#fig-grid > [data-name]'));
+  q.addEventListener('input', function(){
+    const s = (q.value || '').toLowerCase().trim();
+    cards.forEach(function(c){
+      c.style.display = (s && !c.dataset.name.includes(s)) ? 'none' : '';
+    });
+  });
+})();
+</script>
 {% endblock %}

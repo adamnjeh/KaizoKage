@@ -1,9 +1,48 @@
 {% extends 'base.html.twig' %}
-
 {% block title %}Accueil{% endblock %}
 
 {% block body %}
-<div class="container py-5">
-    <p class="text">Welcome to KaizoKage, your anime gateway !</p>
-</div>
+<section class="kk-hero py-5">
+  <div class="container">
+    <div class="row align-items-center g-4">
+      <div class="col-lg-7">
+        <h1 class="display-6 fw-bold mb-3">Bienvenue 👋</h1>
+        <p class="lead text-secondary mb-4">KaizoKage — votre passerelle anime : gérez vos <strong>vitrines</strong> et <strong>figurines</strong> simplement.</p>
+
+        <div class="d-flex gap-2">
+          <a href="{{ path('vitrine_index') }}" class="btn btn-primary btn-lg"><i class="bi bi-collection"></i> Voir les vitrines</a>
+          <a href="{{ path('figurine_index') }}" class="btn btn-outline-primary btn-lg"><i class="bi bi-person-badge"></i> Parcourir les figurines</a>
+        </div>
+      </div>
+      <div class="col-lg-5">
+        <div class="ratio ratio-1x1 bg-white rounded shadow-sm reveal">
+          <img class="ratio-img" src="{{ asset(placeholder_img) }}" alt="KaizoKage">
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="container py-5">
+  <div class="row g-3">
+    <div class="col-sm-6 col-lg-4">
+      <div class="card h-100 reveal">
+        <div class="card-body">
+          <h2 class="h5 mb-1">Vitrines</h2>
+          <p class="text-secondary mb-3">Liste, tri et aperçu.</p>
+          <a href="{{ path('vitrine_index') }}" class="stretched-link">Ouvrir</a>
+        </div>
+      </div>
+    </div>
+    <div class="col-sm-6 col-lg-4">
+      <div class="card h-100 reveal">
+        <div class="card-body">
+          <h2 class="h5 mb-1">Figurines</h2>
+          <p class="text-secondary mb-3">Recherche rapide par nom.</p>
+          <a href="{{ path('figurine_index') }}" class="stretched-link">Ouvrir</a>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
 {% endblock %}
