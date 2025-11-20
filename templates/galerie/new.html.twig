@@ -1,0 +1,11 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}New Galerie{% endblock %}
+
+{% block body %}
+    <h1>Create new Galerie</h1>
+
+    {{ include('galerie/_form.html.twig') }}
+
+    <a href="{{ path('app_galerie_index') }}">back to list</a>
+{% endblock %}

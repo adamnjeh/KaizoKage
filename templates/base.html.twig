@@ -7,7 +7,10 @@
 
     <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 128 128%22><text y=%221.2em%22 font-size=%2296%22>⚫️</text></svg>">
 
+    {# Bootstrap icons #}
     <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" rel="stylesheet" />
+
+    {# Core theme CSS (Shop Homepage) #}
     <link href="{{ asset('css/styles.css') }}" rel="stylesheet">
 
     <style>
@@ -23,55 +26,82 @@
 
     {% block stylesheets %}{% endblock %}
   </head>
+
   <body class="bg-light">
 
-    {# NAVBAR #}
-    <nav class="navbar navbar-expand-lg bg-body-tertiary border-bottom">
-      <div class="container">
-        <a class="navbar-brand fw-semibold" href="{{ path('home') }}">KaizoKage</a>
-        <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#mainNav"
-          aria-controls="mainNav" aria-expanded="false" aria-label="Basculer la navigation">
-          <span class="navbar-toggler-icon"></span>
-        </button>
+    {% block menu %}
+      <nav class="navbar navbar-expand-lg bg-body-tertiary border-bottom">
+        <div class="container">
 
-        <div class="collapse navbar-collapse" id="mainNav">
-          <ul class="navbar-nav me-auto mb-2 mb-lg-0">
-            <li class="nav-item">
-              <a class="nav-link {% if app.request.get('_route') == 'home' %}active{% endif %}" href="{{ path('home') }}">Accueil</a>
-            </li>
-            <li class="nav-item">
-              <a class="nav-link {% if app.request.get('_route') starts with 'vitrine_' %}active{% endif %}" href="{{ path('vitrine_index') }}">Vitrines</a>
-            </li>
-            <li class="nav-item">
-              <a class="nav-link {% if app.request.get('_route') starts with 'figurine_' %}active{% endif %}" href="{{ path('figurine_index') }}">Figurines</a>
-            </li>
-          </ul>
+          <a class="navbar-brand fw-semibold" href="{{ path('home') }}">KaizoKage</a>
 
-          <a class="btn btn-outline-primary" href="{{ path('vitrine_index') }}"><i class="bi bi-search"></i> Explorer</a>
+          <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#mainNav"
+                  aria-controls="mainNav" aria-expanded="false" aria-label="Basculer la navigation">
+            <span class="navbar-toggler-icon"></span>
+          </button>
+
+          <div class="collapse navbar-collapse" id="mainNav">
+
+  <ul class="navbar-nav me-auto mb-2 mb-lg-0">
+    {{ render_bootstrap_menu('main') }}
+  </ul>
+
+  <div class="d-flex align-items-center gap-2">
+    <a class="btn btn-outline-primary" href="{{ path('vitrine_index') }}">
+      <i class="bi bi-search"></i> Explorer
+    </a>
+
+    {% if app.user %}
+      <a class="btn btn-outline-secondary"
+         href="{{ path('app_member_show', { id: app.user.id }) }}">
+        <i class="bi bi-person-circle"></i> Mon espace
+      </a>
+
+      <a class="btn btn-link"
+         href="{{ path('app_logout') }}">
+        Déconnexion
+      </a>
+    {% else %}
+      <a class="btn btn-primary"
+         href="{{ path('app_login') }}">
+        <i class="bi bi-box-arrow-in-right"></i> Connexion
+      </a>
+    {% endif %}
+  </div>
+
+</div>
+
         </div>
-      </div>
-    </nav>
+      </nav>
+    {% endblock %}
 
-    {% block body %}{% endblock %}
 
+    {# PAGE CONTENT #}
+    <main class="kk-page">
+      {% block body %}{% endblock %}
+    </main>
+
+
+    {# FOOTER #}
     <footer class="border-top py-4 mt-5">
       <div class="container text-center small text-secondary">
         KaizoKage · {{ "now"|date("Y") }}
       </div>
     </footer>
 
-    {# Bootstrap JS #}
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
 
+    {# Reveal + Toast scripts #}
     <script>
-      // Reveal-on-scroll
       document.addEventListener('DOMContentLoaded', () => {
         const io = new IntersectionObserver((entries)=>{
-          entries.forEach(e => { if (e.isIntersecting) { e.target.classList.add('revealed'); io.unobserve(e.target); } });
+          entries.forEach(e => {
+            if (e.isIntersecting) { e.target.classList.add('revealed'); io.unobserve(e.target); }
+          });
         }, { threshold: .08 });
+
         document.querySelectorAll('.reveal').forEach(el => io.observe(el));
       });
-      // Small toast helper
+
       window.showToast = (msg) => {
         const el = document.getElementById('kk-toast'); if (!el) return;
         el.querySelector('.toast-body').textContent = msg;
@@ -79,7 +109,7 @@
       };
     </script>
 
-    {# Global toast #}
+    {# Toast container #}
     <div class="position-fixed bottom-0 end-0 p-3" style="z-index:1080">
       <div id="kk-toast" class="toast align-items-center border-0 shadow" role="status" aria-live="polite" aria-atomic="true">
         <div class="d-flex">
@@ -89,6 +119,14 @@
       </div>
     </div>
 
-    {% block javascripts %}{% endblock %}
+
+    {% block javascripts %}
+      {# Bootstrap JS #}
+      <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+
+      {# Core theme JS (Shop Homepage) #}
+      <script src="{{ asset('js/scripts.js') }}"></script>
+    {% endblock %}
+
   </body>
 </html>

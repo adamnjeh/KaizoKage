@@ -1,33 +1,69 @@
 {% extends 'base.html.twig' %}
+
 {% block title %}{{ figurine.nom }}{% endblock %}
+
 {% block body %}
 <div class="container py-4">
-  <a href="{{ path('figurine_index') }}" class="btn btn-outline-secondary btn-sm mb-3">← Retour</a>
+  <div class="d-flex justify-content-between align-items-center mb-3">
+    <h1 class="h4 mb-0">{{ figurine.nom }}</h1>
 
-  <div class="row g-4">
-    <div class="col-md-5">
-      <div class="ratio ratio-1x1 bg-white reveal">
-        <img class="ratio-img" src="{{ asset(placeholder_img) }}" alt="{{ figurine.nom }}">
-      </div>
+    <div class="d-flex gap-2">
+      <a class="btn btn-outline-secondary"
+         href="{{ path('app_figurine_index') }}">
+        ← Retour à la liste
+      </a>
+      <a class="btn btn-primary"
+         href="{{ path('app_figurine_edit', { id: figurine.id }) }}">
+        Modifier
+      </a>
+      {{ include('figurine/_delete_form.html.twig') }}
     </div>
-    <div class="col-md-7">
-      <h1 class="h3 mb-2">{{ figurine.nom }}</h1>
+  </div>
+
+  <div class="row">
+    <div class="col-md-4 mb-3">
+      {# Image de la figurine #}
+      {% if figurine.imageFilename %}
+        {# IMPORTANT : pas de asset() pour les uploads à cause du base_path #}
+        <img
+          src="/uploads/figurines/{{ figurine.imageFilename }}"
+          alt="{{ figurine.nom }}"
+          class="img-fluid rounded">
+      {% else %}
+        {# Fallback sur le placeholder (celui que tu utilises déjà sur /figurine) #}
+        {% if placeholder_img is defined %}
+          <img
+            src="{{ asset(placeholder_img) }}"
+            alt="{{ figurine.nom }}"
+            class="img-fluid rounded">
+        {% else %}
+          <img
+            src="{{ asset('startbootstrap-shop-homepage-gh-pages/assets/img/placeholder.png') }}"
+            alt="{{ figurine.nom }}"
+            class="img-fluid rounded">
+        {% endif %}
+      {% endif %}
+    </div>
+
+    <div class="col-md-8">
       <dl class="row">
-        <dt class="col-sm-3">ID</dt>
+        <dt class="col-sm-3">Id</dt>
         <dd class="col-sm-9">{{ figurine.id }}</dd>
+
+        <dt class="col-sm-3">Nom</dt>
+        <dd class="col-sm-9">{{ figurine.nom }}</dd>
 
         <dt class="col-sm-3">Vitrine</dt>
         <dd class="col-sm-9">
           {% if figurine.vitrine %}
-            <a href="{{ path('vitrine_show', { id: figurine.vitrine.id }) }}">Vitrine #{{ figurine.vitrine.id }}</a>
-          {% else %}—{% endif %}
+            <a href="{{ path('vitrine_show', { id: figurine.vitrine.id }) }}">
+              Vitrine #{{ figurine.vitrine.id }}
+            </a>
+          {% else %}
+            <span class="text-muted">Aucune</span>
+          {% endif %}
         </dd>
       </dl>
-
-      <div class="d-flex gap-2">
-        <button class="btn btn-primary" onclick="showToast('Ajouté au panier')"><i class="bi bi-bag"></i> Ajouter</button>
-        <button class="btn btn-outline-primary" onclick="showToast('Ajouté aux favoris')"><i class="bi bi-heart"></i> Favori</button>
-      </div>
     </div>
   </div>
 </div>

@@ -1,0 +1,36 @@
+{% extends 'base.html.twig' %}
+{% block title %}Membres{% endblock %}
+
+{% block body %}
+<div class="container py-4">
+  <h1 class="h3 mb-3">Membres</h1>
+
+  {% if members is empty %}
+    <div class="alert alert-info">Aucun membre.</div>
+  {% else %}
+    <table class="table table-striped align-middle">
+      <thead>
+        <tr>
+          <th>Id</th>
+          <th>Email</th>
+          <th></th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for member in members %}
+          <tr>
+            <td>{{ member.id }}</td>
+            <td>{{ member.email }}</td>
+            <td class="text-end">
+              <a class="btn btn-sm btn-outline-primary"
+                 href="{{ path('app_member_show', {id: member.id}) }}">
+                Voir
+              </a>
+            </td>
+          </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  {% endif %}
+</div>
+{% endblock %}

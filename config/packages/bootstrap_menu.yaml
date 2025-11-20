@@ -7,7 +7,7 @@ bootstrap_menu:
           route: 'home'
         figurines:
           label: 'Figurines'
-          route: 'figurine_index'
+          route: 'app_figurine_index'
         vitrines:
           label: 'Vitrines'
           route: 'vitrine_index'

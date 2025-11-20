@@ -6,6 +6,7 @@ use App\Repository\VitrineRepository;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\Mapping as ORM;
+use App\Entity\Member;
 
 #[ORM\Entity(repositoryClass: VitrineRepository::class)]
 class Vitrine
@@ -23,6 +24,9 @@ class Vitrine
      */
     #[ORM\OneToMany(targetEntity: Figurine::class, mappedBy: 'vitrine')]
     private Collection $figurines;
+    
+    #[ORM\ManyToOne(inversedBy: 'vitrines')]
+    private ?Member $owner = null;
 
     public function __construct()
     {
@@ -75,4 +79,17 @@ class Vitrine
 
         return $this;
     }
+    
+    public function getOwner(): ?Member
+    {
+        return $this->owner;
+    }
+    
+    public function setOwner(?Member $owner): self
+    {
+        $this->owner = $owner;
+        
+        return $this;
+    }
+    
 }

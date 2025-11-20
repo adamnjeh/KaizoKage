@@ -1,29 +1,157 @@
 <?php
+
 namespace App\Controller;
 
 use App\Entity\Figurine;
+use App\Form\FigurineType;
 use App\Repository\FigurineRepository;
+use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
+use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
-use Symfony\Component\Routing\Annotation\Route;
+use Symfony\Component\Routing\Attribute\Route;
+use Symfony\Component\HttpFoundation\File\UploadedFile;
 
-#[Route('/figurines')]
-class FigurineController extends AbstractController
+
+#[Route('/figurine')]
+final class FigurineController extends AbstractController
 {
-    #[Route('', name: 'figurine_index', methods: ['GET'])]
-    public function index(FigurineRepository $repo): Response
+    #[Route(name: 'app_figurine_index', methods: ['GET'])]
+    public function index(FigurineRepository $figurineRepository): Response
     {
-        $figurines = $repo->findAll();
         return $this->render('figurine/index.html.twig', [
-            'figurines' => $figurines,
+            'figurines' => $figurineRepository->findAll(),
         ]);
     }
-    
-    #[Route('/{id}', name: 'figurine_show', requirements: ['id' => '\d+'], methods: ['GET'])]
+
+    #[Route('/new', name: 'app_figurine_new', methods: ['GET', 'POST'])]
+    public function new(Request $request, EntityManagerInterface $entityManager): Response
+    {
+        $figurine = new Figurine();
+        $form = $this->createForm(FigurineType::class, $figurine);
+        $form->handleRequest($request);
+
+        if ($form->isSubmitted() && $form->isValid()) {
+            
+            /** @var UploadedFile|null $imageFile */
+            $imageFile = $form->get('imageFile')->getData();
+            
+            if ($imageFile) {
+                $uploadsDir = $this->getParameter('kernel.project_dir') . '/public/uploads/figurines';
+                
+                $originalName = pathinfo($imageFile->getClientOriginalName(), PATHINFO_FILENAME);
+                $safeName = transliterator_transliterate('Any-Latin; Latin-ASCII; [^A-Za-z0-9_] remove; Lower()', $originalName);
+                $newFilename = $safeName.'-'.uniqid().'.'.$imageFile->guessExtension();
+                
+                $imageFile->move($uploadsDir, $newFilename);
+                
+                $figurine->setImageFilename($newFilename);
+            }
+            
+            $entityManager->persist($figurine);
+            $entityManager->flush();
+            
+            return $this->redirectToRoute('app_figurine_index', [], Response::HTTP_SEE_OTHER);
+        }
+
+        return $this->render('figurine/new.html.twig', [
+            'figurine' => $figurine,
+            'form' => $form,
+        ]);
+    }
+
+    #[Route('/{id}', name: 'app_figurine_show', methods: ['GET'])]
     public function show(Figurine $figurine): Response
     {
+        $this->assertFigurineAccess($figurine);
+        
+        $hasAccess = false;
+        
+        if ($this->isGranted('ROLE_ADMIN')) {
+            $hasAccess = true;
+        } else {
+            $member = $this->getUser();
+            $owner  = $figurine->getVitrine()?->getOwner();
+            
+            if ($member && $owner && $member === $owner) {
+                $hasAccess = true;
+            }
+        }
+        
+        if (!$hasAccess) {
+            throw $this->createAccessDeniedException("Vous ne pouvez pas accéder à cette figurine.");
+        }
+        
         return $this->render('figurine/show.html.twig', [
             'figurine' => $figurine,
         ]);
     }
+    
+
+    #[Route('/{id}/edit', name: 'app_figurine_edit', methods: ['GET', 'POST'])]
+    public function edit(Request $request, Figurine $figurine, EntityManagerInterface $entityManager): Response
+    {
+        
+        $this->assertFigurineAccess($figurine);
+        
+        $form = $this->createForm(FigurineType::class, $figurine);
+        $form->handleRequest($request);
+
+        if ($form->isSubmitted() && $form->isValid()) {
+            /** @var UploadedFile|null $imageFile */
+                $imageFile = $form->get('imageFile')->getData();
+
+                if ($imageFile) {
+                    $uploadsDir = $this->getParameter('kernel.project_dir') . '/public/uploads/figurines';
+
+                    $originalName = pathinfo($imageFile->getClientOriginalName(), PATHINFO_FILENAME);
+                    $safeName = transliterator_transliterate('Any-Latin; Latin-ASCII; [^A-Za-z0-9_] remove; Lower()', $originalName);
+                    $newFilename = $safeName.'-'.uniqid().'.'.$imageFile->guessExtension();
+
+                    $imageFile->move($uploadsDir, $newFilename);
+
+                    $figurine->setImageFilename($newFilename);
+                }
+
+                $entityManager->flush();       
+
+            return $this->redirectToRoute('app_figurine_index', [], Response::HTTP_SEE_OTHER);
+        }
+
+        return $this->render('figurine/edit.html.twig', [
+            'figurine' => $figurine,
+            'form' => $form,
+        ]);
+    }
+
+    #[Route('/{id}', name: 'app_figurine_delete', methods: ['POST'])]
+    public function delete(Request $request, Figurine $figurine, EntityManagerInterface $entityManager): Response
+    {
+        $this->assertFigurineAccess($figurine);
+        
+        if ($this->isCsrfTokenValid('delete'.$figurine->getId(), $request->getPayload()->getString('_token'))) {
+            $entityManager->remove($figurine);
+            $entityManager->flush();
+        }
+
+        return $this->redirectToRoute('app_figurine_index', [], Response::HTTP_SEE_OTHER);
+    }
+    
+    private function assertFigurineAccess(Figurine $figurine): void
+    {
+        // Admin : accès total
+        if ($this->isGranted('ROLE_ADMIN')) {
+            return;
+        }
+        
+        $user  = $this->getUser();                     // Member ou null
+        $owner = $figurine->getVitrine()?->getOwner(); // Member ou null
+        
+        if (!$user || !$owner || $user !== $owner) {
+            throw $this->createAccessDeniedException(
+                "Vous ne pouvez pas accéder à cette figurine."
+                );
+        }
+    }
+    
 }

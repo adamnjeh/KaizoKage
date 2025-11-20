@@ -1,0 +1,60 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Modifier {{ figurine.nom }}{% endblock %}
+
+{% block body %}
+<div class="container py-4">
+  <div class="d-flex justify-content-between align-items-center mb-3">
+    <h1 class="h4 mb-0">Modifier la figurine {{ figurine.nom }}</h1>
+
+    <a class="btn btn-outline-secondary"
+       href="{{ path('app_figurine_show', { id: figurine.id }) }}">
+      ← Retour à la fiche
+    </a>
+  </div>
+
+  <div class="row">
+    <div class="col-md-4 mb-3">
+      {# Aperçu de l’image actuelle #}
+      {% if figurine.imageFilename %}
+        <p class="text-muted small mb-1">Image actuelle :</p>
+        <img
+          src="/uploads/figurines/{{ figurine.imageFilename }}"
+          alt="{{ figurine.nom }}"
+          class="img-fluid rounded mb-3">
+      {% else %}
+        <p class="text-muted small mb-1">Aucune image pour le moment :</p>
+        {% if placeholder_img is defined %}
+          <img
+            src="{{ asset(placeholder_img) }}"
+            alt="{{ figurine.nom }}"
+            class="img-fluid rounded mb-3">
+        {% endif %}
+      {% endif %}
+    </div>
+
+    <div class="col-md-8">
+      {# Formulaire d’édition (nom, vitrine, imageFile, etc.) #}
+      {{ form_start(form) }}
+        {{ form_row(form.nom) }}
+        {{ form_row(form.vitrine) }}
+
+        {# Champ pour uploader / changer l’image #}
+        {% if form.imageFile is defined %}
+          {{ form_row(form.imageFile) }}
+        {% endif %}
+
+        {# Autres champs éventuels ici #}
+
+        <button class="btn btn-primary mt-3">
+          Mettre à jour
+        </button>
+      {{ form_end(form) }}
+
+      <div class="mt-3">
+        {{ include('figurine/_delete_form.html.twig') }}
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

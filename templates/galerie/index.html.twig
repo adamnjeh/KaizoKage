@@ -1,0 +1,52 @@
+{% extends 'base.html.twig' %}
+
+{% block body %}
+<div class="container py-4">
+    <div class="d-flex justify-content-between align-items-center mb-3">
+        <h1 class="h3 mb-0">Galeries</h1>
+{#        <a class="btn btn-primary" href="{{ path('app_galerie_new') }}">
+            <i class="bi bi-plus-circle"></i> Nouvelle galerie
+        </a> #}
+    </div>
+
+    <table class="table table-striped align-middle">
+        <thead>
+            <tr>
+                <th>Id</th>
+                <th>Description</th>
+                <th>Publiée</th>
+                <th class="text-end">Actions</th>
+            </tr>
+        </thead>
+        <tbody>
+        {% for galerie in galeries %}
+            <tr>
+                <td>{{ galerie.id }}</td>
+                <td>{{ galerie.description }}</td>
+                <td>
+                    {% if galerie.published %}
+                        <span class="badge bg-success">Publique</span>
+                    {% else %}
+                        <span class="badge bg-secondary">Privée</span>
+                    {% endif %}
+                </td>
+                <td class="text-end">
+                    <a class="btn btn-sm btn-outline-secondary" href="{{ path('app_galerie_show', {'id': galerie.id}) }}">
+                        Voir
+                    </a>
+                    <a class="btn btn-sm btn-outline-primary" href="{{ path('app_galerie_edit', {'id': galerie.id}) }}">
+                        Modifier
+                    </a>
+                </td>
+            </tr>
+        {% else %}
+            <tr>
+                <td colspan="4" class="text-center text-muted fst-italic">
+                    Aucune galerie pour le moment.
+                </td>
+            </tr>
+        {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% endblock %}
