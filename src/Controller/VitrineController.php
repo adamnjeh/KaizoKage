@@ -14,11 +14,26 @@ class VitrineController extends AbstractController
     #[Route('', name: 'vitrine_index', methods: ['GET'])]
     public function index(VitrineRepository $repo): Response
     {
-        $vitrines = $repo->findAll();
+        // Admin : voit toutes les vitrines
+        if ($this->isGranted('ROLE_ADMIN')) {
+            $vitrines = $repo->findAll();
+        } else {
+            $user = $this->getUser(); // Member
+            
+            if (!$user) {
+                // Normalement impossible car /vitrines est protégé par security.yaml
+                throw $this->createAccessDeniedException();
+            }
+            
+            // Vitrines appartenant au membre connecté
+            $vitrines = $repo->findBy(['owner' => $user]);
+        }
+        
         return $this->render('vitrine/index.html.twig', [
             'vitrines' => $vitrines,
         ]);
     }
+    
     
     #[Route('/{id}', name: 'vitrine_show', methods: ['GET'])]
     public function show(Vitrine $vitrine): Response

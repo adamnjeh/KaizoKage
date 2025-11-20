@@ -17,12 +17,34 @@ use Symfony\Component\HttpFoundation\File\UploadedFile;
 final class FigurineController extends AbstractController
 {
     #[Route(name: 'app_figurine_index', methods: ['GET'])]
-    public function index(FigurineRepository $figurineRepository): Response
+    public function index(FigurineRepository $figurineRepository, EntityManagerInterface $em): Response
     {
+        // Admin : voit toutes les figurines
+        if ($this->isGranted('ROLE_ADMIN')) {
+            $figurines = $figurineRepository->findAll();
+        } else {
+            $user = $this->getUser(); // Member
+            
+            if (!$user) {
+                throw $this->createAccessDeniedException();
+            }
+            
+            // Figurines dont la vitrine appartient au membre connecté
+            $qb = $em->createQueryBuilder();
+            $qb->select('f')
+            ->from(\App\Entity\Figurine::class, 'f')
+            ->join('f.vitrine', 'v')
+            ->where('v.owner = :owner')
+            ->setParameter('owner', $user);
+            
+            $figurines = $qb->getQuery()->getResult();
+        }
+        
         return $this->render('figurine/index.html.twig', [
-            'figurines' => $figurineRepository->findAll(),
+            'figurines' => $figurines,
         ]);
     }
+    
 
     #[Route('/new', name: 'app_figurine_new', methods: ['GET', 'POST'])]
     public function new(Request $request, EntityManagerInterface $entityManager): Response

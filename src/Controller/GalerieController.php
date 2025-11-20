@@ -65,12 +65,35 @@ final class GalerieController extends AbstractController
     }
     
     #[Route(name: 'app_galerie_index', methods: ['GET'])]
-    public function index(GalerieRepository $galerieRepository): Response
+    public function index(GalerieRepository $galerieRepository, EntityManagerInterface $em): Response
     {
+        // Admin : voit toutes les galeries
+        if ($this->isGranted('ROLE_ADMIN')) {
+            $galeries = $galerieRepository->findAll();
+        } else {
+            $user = $this->getUser(); // Member
+            
+            if (!$user) {
+                throw $this->createAccessDeniedException();
+            }
+            
+            // Galeries publiques OU galeries privées du membre
+            $qb = $em->createQueryBuilder();
+            $qb->select('g')
+            ->from(\App\Entity\Galerie::class, 'g')
+            ->where('g.published = :pub')
+            ->orWhere('g.creator = :user')
+            ->setParameter('pub', true)
+            ->setParameter('user', $user);
+            
+            $galeries = $qb->getQuery()->getResult();
+        }
+        
         return $this->render('galerie/index.html.twig', [
-            'galeries' => $galerieRepository->findBy(['published' => true]),
+            'galeries' => $galeries,
         ]);
     }
+    
     
     #[Route('/new', name: 'app_galerie_new', methods: ['GET', 'POST'])]
     public function new(Request $request, EntityManagerInterface $entityManager): Response
