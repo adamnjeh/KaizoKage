@@ -1,21 +1,96 @@
 {% extends 'base.html.twig' %}
+
 {% block title %}Nouvelle galerie{% endblock %}
 
 {% block body %}
 <div class="container py-4">
-  <div class="d-flex justify-content-between align-items-center mb-3">
-    <h1 class="h4 mb-0">Nouvelle galerie pour {{ member.email }}</h1>
-    <a class="btn btn-link" href="{{ path('app_member_show', {id: member.id}) }}">
-      ← Retour au membre
-    </a>
+  <div class="row justify-content-center">
+    <div class="col-lg-9">
+
+      <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+          <h1 class="h4 mb-1">Créer une galerie pour {{ member.email }}</h1>
+          <p class="text-secondary small mb-0">
+            Donnez un titre et choisissez si la galerie est publique ou privée.
+          </p>
+        </div>
+
+        <a class="btn btn-outline-secondary"
+           href="{{ path('app_member_show', { id: member.id }) }}">
+          ← Retour au profil
+        </a>
+      </div>
+
+      <div class="card shadow-sm">
+        <div class="card-body">
+          {{ form_start(form) }}
+
+            {# Description de la galerie #}
+            {% if form.description is defined %}
+              <div class="mb-3">
+                {{ form_label(form.description, null, { label_attr: { class: 'form-label' } }) }}
+                {{ form_widget(form.description, {
+                  attr: {
+                    class: 'form-control',
+                    placeholder: 'Ex : Best of One Piece, Figurines Dragon Ball…'
+                  }
+                }) }}
+                {{ form_errors(form.description) }}
+              </div>
+            {% endif %}
+
+            {# Statut publiée/privée #}
+            {% if form.published is defined %}
+              <div class="mb-3">
+                {{ form_label(form.published, null, { label_attr: { class: 'form-label' } }) }}
+                <div class="form-check form-switch">
+                  {{ form_widget(form.published, {
+                    attr: {
+                      class: 'form-check-input'
+                    }
+                  }) }}
+                  <label class="form-check-label small ms-1">
+                    Rendre cette galerie publique
+                  </label>
+                </div>
+                {{ form_errors(form.published) }}
+              </div>
+            {% endif %}
+
+            {# Figurines associées #}
+            {% if form.figurines is defined %}
+              <div class="mb-3">
+                {{ form_label(form.figurines, 'Figurines dans cette galerie', {
+                  label_attr: { class: 'form-label' }
+                }) }}
+                {{ form_widget(form.figurines, {
+                  attr: { class: 'form-select', size: 6 }
+                }) }}
+                {{ form_errors(form.figurines) }}
+                <div class="form-text">
+                  Vous pouvez sélectionner plusieurs figurines (Ctrl/Cmd + clic).
+                </div>
+              </div>
+            {% endif %}
+
+            {# Champs éventuels restants #}
+            {{ form_rest(form) }}
+
+            <div class="mt-4 d-flex gap-2">
+              <button class="btn btn-primary">
+                <i class="bi bi-check-circle"></i> Créer la galerie
+              </button>
+              <a href="{{ path('app_member_show', { id: member.id }) }}"
+                 class="btn btn-outline-secondary">
+                Annuler
+              </a>
+            </div>
+
+          {{ form_end(form) }}
+        </div>
+      </div>
+
+    </div>
   </div>
-
-  {{ form_start(form) }}
-    {{ form_row(form.description) }}
-    {{ form_row(form.published) }}
-    {{ form_row(form.figurines) }}
-
-    <button class="btn btn-primary mt-3">Enregistrer</button>
-  {{ form_end(form) }}
 </div>
 {% endblock %}

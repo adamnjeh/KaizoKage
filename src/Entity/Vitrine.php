@@ -15,10 +15,10 @@ class Vitrine
     #[ORM\GeneratedValue]
     #[ORM\Column]
     private ?int $id = null;
-
+    
     #[ORM\Column(length: 255)]
     private ?string $description = null;
-
+    
     /**
      * @var Collection<int, Figurine>
      */
@@ -27,29 +27,32 @@ class Vitrine
     
     #[ORM\ManyToOne(inversedBy: 'vitrines')]
     private ?Member $owner = null;
-
+    
+    #[ORM\Column(length: 255, nullable: true)]
+    private ?string $imageFilename = null;
+    
     public function __construct()
     {
         $this->figurines = new ArrayCollection();
     }
-
+    
     public function getId(): ?int
     {
         return $this->id;
     }
-
+    
     public function getDescription(): ?string
     {
         return $this->description;
     }
-
+    
     public function setDescription(string $description): static
     {
         $this->description = $description;
-
+        
         return $this;
     }
-
+    
     /**
      * @return Collection<int, Figurine>
      */
@@ -57,26 +60,25 @@ class Vitrine
     {
         return $this->figurines;
     }
-
+    
     public function addFigurine(Figurine $figurine): static
     {
         if (!$this->figurines->contains($figurine)) {
             $this->figurines->add($figurine);
             $figurine->setVitrine($this);
         }
-
+        
         return $this;
     }
-
+    
     public function removeFigurine(Figurine $figurine): static
     {
         if ($this->figurines->removeElement($figurine)) {
-            // set the owning side to null (unless already changed)
             if ($figurine->getVitrine() === $this) {
                 $figurine->setVitrine(null);
             }
         }
-
+        
         return $this;
     }
     
@@ -92,4 +94,15 @@ class Vitrine
         return $this;
     }
     
+    public function getImageFilename(): ?string
+    {
+        return $this->imageFilename;
+    }
+    
+    public function setImageFilename(?string $imageFilename): self
+    {
+        $this->imageFilename = $imageFilename;
+        
+        return $this;
+    }
 }

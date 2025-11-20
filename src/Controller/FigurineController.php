@@ -50,10 +50,39 @@ final class FigurineController extends AbstractController
     public function new(Request $request, EntityManagerInterface $entityManager): Response
     {
         $figurine = new Figurine();
-        $form = $this->createForm(FigurineType::class, $figurine);
+        
+        $user    = $this->getUser();               // Member ou null
+        $isAdmin = $this->isGranted('ROLE_ADMIN');
+        
+        $form = $this->createForm(FigurineType::class, $figurine, [
+            'current_member' => $user,
+            'is_admin'       => $isAdmin,
+        ]);
         $form->handleRequest($request);
-
+        
         if ($form->isSubmitted() && $form->isValid()) {
+            
+            // Sécurité serveur : un membre ne peut utiliser que SES vitrines/galeries
+            if (!$isAdmin) {
+                if (!$user) {
+                    throw $this->createAccessDeniedException();
+                }
+                
+                $vitrine = $figurine->getVitrine();
+                if (!$vitrine || $vitrine->getOwner() !== $user) {
+                    throw $this->createAccessDeniedException(
+                        "Vous ne pouvez pas utiliser une vitrine qui ne vous appartient pas."
+                        );
+                }
+                
+                foreach ($figurine->getGaleries() as $galerie) {
+                    if ($galerie->getCreator() !== $user) {
+                        throw $this->createAccessDeniedException(
+                            "Vous ne pouvez pas utiliser une galerie qui ne vous appartient pas."
+                            );
+                    }
+                }
+            }
             
             /** @var UploadedFile|null $imageFile */
             $imageFile = $form->get('imageFile')->getData();
@@ -62,8 +91,11 @@ final class FigurineController extends AbstractController
                 $uploadsDir = $this->getParameter('kernel.project_dir') . '/public/uploads/figurines';
                 
                 $originalName = pathinfo($imageFile->getClientOriginalName(), PATHINFO_FILENAME);
-                $safeName = transliterator_transliterate('Any-Latin; Latin-ASCII; [^A-Za-z0-9_] remove; Lower()', $originalName);
-                $newFilename = $safeName.'-'.uniqid().'.'.$imageFile->guessExtension();
+                $safeName     = transliterator_transliterate(
+                    'Any-Latin; Latin-ASCII; [^A-Za-z0-9_] remove; Lower()',
+                    $originalName
+                    );
+                $newFilename  = $safeName.'-'.uniqid().'.'.$imageFile->guessExtension();
                 
                 $imageFile->move($uploadsDir, $newFilename);
                 
@@ -75,12 +107,13 @@ final class FigurineController extends AbstractController
             
             return $this->redirectToRoute('app_figurine_index', [], Response::HTTP_SEE_OTHER);
         }
-
+        
         return $this->render('figurine/new.html.twig', [
             'figurine' => $figurine,
-            'form' => $form,
+            'form'     => $form,
         ]);
     }
+    
 
     #[Route('/{id}', name: 'app_figurine_show', methods: ['GET'])]
     public function show(Figurine $figurine): Response
@@ -113,38 +146,71 @@ final class FigurineController extends AbstractController
     #[Route('/{id}/edit', name: 'app_figurine_edit', methods: ['GET', 'POST'])]
     public function edit(Request $request, Figurine $figurine, EntityManagerInterface $entityManager): Response
     {
-        
+        // contrôle d’accès sur la figurine actuelle (avant modification)
         $this->assertFigurineAccess($figurine);
         
-        $form = $this->createForm(FigurineType::class, $figurine);
+        $user    = $this->getUser();
+        $isAdmin = $this->isGranted('ROLE_ADMIN');
+        
+        $form = $this->createForm(FigurineType::class, $figurine, [
+            'current_member' => $user,
+            'is_admin'       => $isAdmin,
+        ]);
         $form->handleRequest($request);
-
+        
         if ($form->isSubmitted() && $form->isValid()) {
-            /** @var UploadedFile|null $imageFile */
-                $imageFile = $form->get('imageFile')->getData();
-
-                if ($imageFile) {
-                    $uploadsDir = $this->getParameter('kernel.project_dir') . '/public/uploads/figurines';
-
-                    $originalName = pathinfo($imageFile->getClientOriginalName(), PATHINFO_FILENAME);
-                    $safeName = transliterator_transliterate('Any-Latin; Latin-ASCII; [^A-Za-z0-9_] remove; Lower()', $originalName);
-                    $newFilename = $safeName.'-'.uniqid().'.'.$imageFile->guessExtension();
-
-                    $imageFile->move($uploadsDir, $newFilename);
-
-                    $figurine->setImageFilename($newFilename);
+            
+            // Re-sécurité côté serveur : empêcher de déplacer la figurine vers une vitrine/galerie d’un autre membre
+            if (!$isAdmin) {
+                if (!$user) {
+                    throw $this->createAccessDeniedException();
                 }
-
-                $entityManager->flush();       
-
+                
+                $vitrine = $figurine->getVitrine();
+                if (!$vitrine || $vitrine->getOwner() !== $user) {
+                    throw $this->createAccessDeniedException(
+                        "Vous ne pouvez pas déplacer cette figurine dans une vitrine qui ne vous appartient pas."
+                        );
+                }
+                
+                foreach ($figurine->getGaleries() as $galerie) {
+                    if ($galerie->getCreator() !== $user) {
+                        throw $this->createAccessDeniedException(
+                            "Vous ne pouvez pas associer cette figurine à une galerie qui ne vous appartient pas."
+                            );
+                    }
+                }
+            }
+            
+            /** @var UploadedFile|null $imageFile */
+            $imageFile = $form->get('imageFile')->getData();
+            
+            if ($imageFile) {
+                $uploadsDir = $this->getParameter('kernel.project_dir') . '/public/uploads/figurines';
+                
+                $originalName = pathinfo($imageFile->getClientOriginalName(), PATHINFO_FILENAME);
+                $safeName     = transliterator_transliterate(
+                    'Any-Latin; Latin-ASCII; [^A-Za-z0-9_] remove; Lower()',
+                    $originalName
+                    );
+                $newFilename  = $safeName.'-'.uniqid().'.'.$imageFile->guessExtension();
+                
+                $imageFile->move($uploadsDir, $newFilename);
+                
+                $figurine->setImageFilename($newFilename);
+            }
+            
+            $entityManager->flush();
+            
             return $this->redirectToRoute('app_figurine_index', [], Response::HTTP_SEE_OTHER);
         }
-
+        
         return $this->render('figurine/edit.html.twig', [
             'figurine' => $figurine,
-            'form' => $form,
+            'form'     => $form,
         ]);
     }
+    
 
     #[Route('/{id}', name: 'app_figurine_delete', methods: ['POST'])]
     public function delete(Request $request, Figurine $figurine, EntityManagerInterface $entityManager): Response

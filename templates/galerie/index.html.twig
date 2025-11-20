@@ -4,7 +4,8 @@
 <div class="container py-4">
     <div class="d-flex justify-content-between align-items-center mb-3">
         <h1 class="h3 mb-0">Galeries</h1>
-{#        <a class="btn btn-primary" href="{{ path('app_galerie_new') }}">
+        {# Bouton new désactivé ici, tu gères déjà via Member.show #}
+        {# <a class="btn btn-primary" href="{{ path('app_galerie_new') }}">
             <i class="bi bi-plus-circle"></i> Nouvelle galerie
         </a> #}
     </div>
@@ -20,6 +21,8 @@
         </thead>
         <tbody>
         {% for galerie in galeries %}
+            {% set can_manage = app.user and (is_granted('ROLE_ADMIN') or (galerie.creator and app.user.id == galerie.creator.id)) %}
+
             <tr>
                 <td>{{ galerie.id }}</td>
                 <td>{{ galerie.description }}</td>
@@ -31,12 +34,17 @@
                     {% endif %}
                 </td>
                 <td class="text-end">
-                    <a class="btn btn-sm btn-outline-secondary" href="{{ path('app_galerie_show', {'id': galerie.id}) }}">
+                    <a class="btn btn-sm btn-outline-secondary"
+                       href="{{ path('app_galerie_show', {'id': galerie.id}) }}">
                         Voir
                     </a>
-                    <a class="btn btn-sm btn-outline-primary" href="{{ path('app_galerie_edit', {'id': galerie.id}) }}">
-                        Modifier
-                    </a>
+
+                    {% if can_manage %}
+                        <a class="btn btn-sm btn-outline-primary"
+                           href="{{ path('app_galerie_edit', {'id': galerie.id}) }}">
+                            Modifier
+                        </a>
+                    {% endif %}
                 </td>
             </tr>
         {% else %}

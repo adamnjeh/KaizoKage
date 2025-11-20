@@ -5,9 +5,15 @@ bootstrap_menu:
         home:
           label: 'Accueil'
           route: 'home'
-        figurines:
-          label: 'Figurines'
-          route: 'app_figurine_index'
+
         vitrines:
-          label: 'Vitrines'
+          label: 'Mes vitrines'
           route: 'vitrine_index'
+
+        figurines:
+          label: 'Mes figurines'
+          route: 'app_figurine_index'
+
+        galeries:
+          label: 'Galeries'
+          route: 'app_galerie_index'

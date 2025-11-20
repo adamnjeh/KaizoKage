@@ -1,11 +1,156 @@
 {% extends 'base.html.twig' %}
 
-{% block title %}New Figurine{% endblock %}
+{% block title %}Nouvelle figurine{% endblock %}
 
 {% block body %}
-    <h1>Create new Figurine</h1>
+<div class="container py-4">
+  <div class="row justify-content-center">
+    <div class="col-lg-10">
 
-    {{ include('figurine/_form.html.twig') }}
+      <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+          <h1 class="h4 mb-1">Ajouter une nouvelle figurine</h1>
+          <p class="text-secondary small mb-0">
+            Donnez un nom, choisissez une vitrine, ajoutez une image et, si besoin, associez des galeries.
+          </p>
+        </div>
 
-    <a href="{{ path('app_figurine_index') }}">back to list</a>
+        <a class="btn btn-outline-secondary"
+           href="{{ path('app_figurine_index') }}">
+          ← Retour à la liste
+        </a>
+      </div>
+
+      <div class="row g-4">
+        {# Colonne gauche : aperçu #}
+        <div class="col-md-4">
+          <div class="card h-100 shadow-sm">
+            <div class="card-body">
+              <p class="text-muted small mb-2">Aperçu de l’image</p>
+
+              <div class="ratio ratio-1x1 bg-white border rounded d-flex align-items-center justify-content-center mb-2">
+                {% if placeholder_img is defined %}
+                  <img
+                    id="figurine-preview-img"
+                    src="{{ asset(placeholder_img) }}"
+                    alt="Prévisualisation"
+                    class="ratio-img">
+                {% else %}
+                  <img
+                    id="figurine-preview-img"
+                    src="https://via.placeholder.com/600x600?text=Figurine"
+                    alt="Prévisualisation"
+                    class="ratio-img">
+                {% endif %}
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {# Colonne droite : formulaire #}
+        <div class="col-md-8">
+          <div class="card shadow-sm">
+            <div class="card-body">
+              {{ form_start(form) }}
+
+                <div class="mb-3">
+                  {{ form_label(form.nom, null, { 'label_attr': { 'class': 'form-label' } }) }}
+                  {{ form_widget(form.nom, {
+                    'attr': {
+                      'class': 'form-control',
+                      'placeholder': 'Ex : Luffy Gear 5'
+                    }
+                  }) }}
+                  {{ form_errors(form.nom) }}
+                </div>
+
+                <div class="mb-3">
+                  {{ form_label(form.vitrine, null, { 'label_attr': { 'class': 'form-label' } }) }}
+                  {{ form_widget(form.vitrine, {
+                    'attr': { 'class': 'form-select' }
+                  }) }}
+                  {{ form_errors(form.vitrine) }}
+                </div>
+
+                <div class="mb-3">
+                  {{ form_label(form.galeries, null, { 'label_attr': { 'class': 'form-label' } }) }}
+                  {{ form_widget(form.galeries, {
+                    'attr': { 'class': 'form-select', 'size': 4 }
+                  }) }}
+                  <div class="form-text">
+                    Vous pouvez sélectionner plusieurs galeries (Ctrl+clic / Cmd+clic).
+                  </div>
+                  {{ form_errors(form.galeries) }}
+                </div>
+
+                {% if form.imageFile is defined %}
+                  <div class="mb-3">
+                    {{ form_label(form.imageFile, null, { 'label_attr': { 'class': 'form-label' } }) }}
+                    {# on ajoute une classe spécifique pour la détecter en JS #}
+                    {{ form_widget(form.imageFile, {
+                      'attr': { 'class': 'form-control kk-image-input' }
+                    }) }}
+                    {{ form_errors(form.imageFile) }}
+                    <div class="form-text">
+                      Formats acceptés : JPG, PNG, WebP. Taille maximale 2 Mo.
+                    </div>
+                  </div>
+                {% endif %}
+
+                <div class="mt-4 d-flex gap-2">
+                  <button class="btn btn-primary">
+                    <i class="bi bi-check-circle"></i> Créer la figurine
+                  </button>
+                  <a href="{{ path('app_figurine_index') }}"
+                     class="btn btn-outline-secondary">
+                    Annuler
+                  </a>
+                </div>
+
+              {{ form_end(form) }}
+            </div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</div>
+{% endblock %}
+
+{% block javascripts %}
+  {{ parent() }}
+  <script>
+    (function() {
+      const fileInput = document.querySelector('.kk-image-input');
+      const preview   = document.getElementById('figurine-preview-img');
+
+      if (!fileInput || !preview) {
+        return;
+      }
+
+      fileInput.addEventListener('change', function () {
+        const files = fileInput.files;
+        if (!files || !files.length) {
+          return;
+        }
+
+        const file = files[0];
+
+        if (!file.type || !file.type.startsWith('image/')) {
+          if (typeof window.showToast === 'function') {
+            window.showToast('Merci de choisir un fichier image.');
+          }
+          fileInput.value = '';
+          return;
+        }
+
+        const reader = new FileReader();
+        reader.onload = function (e) {
+          preview.src = e.target.result;
+        };
+        reader.readAsDataURL(file);
+      });
+    })();
+  </script>
 {% endblock %}

@@ -1,11 +1,90 @@
 {% extends 'base.html.twig' %}
 
-{% block title %}New Galerie{% endblock %}
+{% block title %}Nouvelle galerie{% endblock %}
 
 {% block body %}
-    <h1>Create new Galerie</h1>
+<div class="container py-4">
+  <div class="row justify-content-center">
+    <div class="col-lg-9">
 
-    {{ include('galerie/_form.html.twig') }}
+      <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+          <h1 class="h4 mb-1">Créer une nouvelle galerie</h1>
+          <p class="text-secondary small mb-0">
+            Organisez vos figurines dans une nouvelle galerie.
+          </p>
+        </div>
 
-    <a href="{{ path('app_galerie_index') }}">back to list</a>
+        <a class="btn btn-outline-secondary"
+           href="{{ path('app_galerie_index') }}">
+          ← Retour à la liste
+        </a>
+      </div>
+
+      <div class="card shadow-sm">
+        <div class="card-body">
+          {{ form_start(form) }}
+
+            {% if form.description is defined %}
+              <div class="mb-3">
+                {{ form_label(form.description, null, { label_attr: { class: 'form-label' } }) }}
+                {{ form_widget(form.description, {
+                  attr: {
+                    class: 'form-control',
+                    placeholder: 'Ex : Galeries One Piece, Figurines Naruto…'
+                  }
+                }) }}
+                {{ form_errors(form.description) }}
+              </div>
+            {% endif %}
+
+            {% if form.published is defined %}
+              <div class="mb-3">
+                {{ form_label(form.published, null, { label_attr: { class: 'form-label' } }) }}
+                <div class="form-check form-switch">
+                  {{ form_widget(form.published, {
+                    attr: { class: 'form-check-input' }
+                  }) }}
+                  <label class="form-check-label small ms-1">
+                    Rendre cette galerie publique
+                  </label>
+                </div>
+                {{ form_errors(form.published) }}
+              </div>
+            {% endif %}
+
+            {% if form.figurines is defined %}
+              <div class="mb-3">
+                {{ form_label(form.figurines, 'Figurines dans cette galerie', {
+                  label_attr: { class: 'form-label' }
+                }) }}
+                {{ form_widget(form.figurines, {
+                  attr: { class: 'form-select', size: 6 }
+                }) }}
+                {{ form_errors(form.figurines) }}
+                <div class="form-text">
+                  Sélectionnez une ou plusieurs figurines associées.
+                </div>
+              </div>
+            {% endif %}
+
+            {{ form_rest(form) }}
+
+            <div class="mt-4 d-flex gap-2">
+              <button class="btn btn-primary">
+                <i class="bi bi-check-circle"></i> Créer la galerie
+              </button>
+              <a href="{{ path('app_galerie_index') }}"
+                 class="btn btn-outline-secondary">
+                Annuler
+              </a>
+            </div>
+
+          {{ form_end(form) }}
+        </div>
+      </div>
+
+    </div>
+  </div>
+</div>
 {% endblock %}

@@ -1,39 +1,62 @@
 {% extends 'base.html.twig' %}
 {% block title %}{{ figurine.nom }}{% endblock %}
+
 {% block body %}
 <div class="container py-4">
-<a href="{{ path('app_galerie_show', { id: galerie.id }) }}" class="btn btn-outline-secondary btn-sm mb-3">
-  ← Retour à la galerie
-</a>
+  <a href="{{ path('app_galerie_show', { id: galerie.id }) }}"
+     class="btn btn-outline-secondary btn-sm mb-3">
+    ← Retour à la galerie
+  </a>
 
   <div class="row g-4">
     <div class="col-md-5">
-      <div class="ratio ratio-1x1 bg-white reveal">
-        {% set imgPath = figurine.imageFilename
-            ? 'uploads/figurines/' ~ figurine.imageFilename
-            : placeholder_img
-        %}
-
-		<img src="{{ asset(imgPath) }}" alt="{{ figurine.nom }}" class="img-fluid mb-3">
+      <div class="ratio ratio-1x1 bg-white border rounded reveal">
+        {% if figurine.imageFilename %}
+          {# IMPORTANT : pas de asset() pour les uploads #}
+          <img
+            src="/uploads/figurines/{{ figurine.imageFilename }}"
+            alt="{{ figurine.nom }}"
+            class="ratio-img">
+        {% else %}
+          {% if placeholder_img is defined %}
+            <img
+              src="{{ asset(placeholder_img) }}"
+              alt="{{ figurine.nom }}"
+              class="ratio-img">
+          {% else %}
+            <img
+              src="{{ asset('startbootstrap-shop-homepage-gh-pages/assets/img/placeholder.png') }}"
+              alt="{{ figurine.nom }}"
+              class="ratio-img">
+          {% endif %}
+        {% endif %}
       </div>
     </div>
+
     <div class="col-md-7">
       <h1 class="h3 mb-2">{{ figurine.nom }}</h1>
-      <dl class="row">
+
+      <dl class="row mb-3">
         <dt class="col-sm-3">ID</dt>
         <dd class="col-sm-9">{{ figurine.id }}</dd>
 
         <dt class="col-sm-3">Vitrine</dt>
         <dd class="col-sm-9">
           {% if figurine.vitrine %}
-            <a href="{{ path('vitrine_show', { id: figurine.vitrine.id }) }}">Vitrine #{{ figurine.vitrine.id }}</a>
-          {% else %}—{% endif %}
+            <a href="{{ path('vitrine_show', { id: figurine.vitrine.id }) }}">
+              Vitrine #{{ figurine.vitrine.id }}
+            </a>
+          {% else %}
+            <span class="text-muted">Aucune</span>
+          {% endif %}
         </dd>
       </dl>
 
       <div class="d-flex gap-2">
-        <button class="btn btn-primary" onclick="showToast('Ajouté au panier')"><i class="bi bi-bag"></i> Ajouter</button>
-        <button class="btn btn-outline-primary" onclick="showToast('Ajouté aux favoris')"><i class="bi bi-heart"></i> Favori</button>
+        <a href="{{ path('app_figurine_edit', { id: figurine.id }) }}"
+           class="btn btn-primary">
+          <i class="bi bi-pencil-square"></i> Modifier
+        </a>
       </div>
     </div>
   </div>

@@ -1,10 +1,15 @@
 <?php
+
 namespace App\Controller;
 
-use App\Entity\Vitrine;
 use App\Entity\Member;
+use App\Entity\Vitrine;
+use App\Form\VitrineType;
 use App\Repository\VitrineRepository;
+use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
+use Symfony\Component\HttpFoundation\File\UploadedFile;
+use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Annotation\Route;
 
@@ -14,18 +19,15 @@ class VitrineController extends AbstractController
     #[Route('', name: 'vitrine_index', methods: ['GET'])]
     public function index(VitrineRepository $repo): Response
     {
-        // Admin : voit toutes les vitrines
         if ($this->isGranted('ROLE_ADMIN')) {
             $vitrines = $repo->findAll();
         } else {
             $user = $this->getUser(); // Member
             
             if (!$user) {
-                // Normalement impossible car /vitrines est protégé par security.yaml
                 throw $this->createAccessDeniedException();
             }
             
-            // Vitrines appartenant au membre connecté
             $vitrines = $repo->findBy(['owner' => $user]);
         }
         
@@ -33,7 +35,6 @@ class VitrineController extends AbstractController
             'vitrines' => $vitrines,
         ]);
     }
-    
     
     #[Route('/{id}', name: 'vitrine_show', methods: ['GET'])]
     public function show(Vitrine $vitrine): Response
@@ -58,7 +59,6 @@ class VitrineController extends AbstractController
         ]);
     }
     
-    
     #[Route('/member/{id}/new', name: 'app_member_vitrine_new', methods: ['GET', 'POST'])]
     public function memberNew(
         Member $member,
@@ -72,6 +72,25 @@ class VitrineController extends AbstractController
             $form->handleRequest($request);
             
             if ($form->isSubmitted() && $form->isValid()) {
+                
+                /** @var UploadedFile|null $imageFile */
+                $imageFile = $form->get('imageFile')->getData();
+                
+                if ($imageFile) {
+                    $uploadsDir = $this->getParameter('kernel.project_dir') . '/public/uploads/vitrines';
+                    
+                    $originalName = pathinfo($imageFile->getClientOriginalName(), PATHINFO_FILENAME);
+                    $safeName     = transliterator_transliterate(
+                        'Any-Latin; Latin-ASCII; [^A-Za-z0-9_] remove; Lower()',
+                        $originalName
+                        );
+                    $newFilename  = $safeName.'-'.uniqid().'.'.$imageFile->guessExtension();
+                    
+                    $imageFile->move($uploadsDir, $newFilename);
+                    
+                    $vitrine->setImageFilename($newFilename);
+                }
+                
                 $entityManager->persist($vitrine);
                 $entityManager->flush();
                 
@@ -85,5 +104,60 @@ class VitrineController extends AbstractController
                 'vitrine' => $vitrine,
                 'form'    => $form,
             ]);
+    }
+    
+    #[Route('/{id}/edit', name: 'vitrine_edit', methods: ['GET', 'POST'])]
+    public function edit(
+        Request $request,
+        Vitrine $vitrine,
+        EntityManagerInterface $entityManager
+        ): Response {
+            // accès réservé au propriétaire ou admin
+            if (
+                !$this->isGranted('ROLE_ADMIN') &&
+                (
+                    !$this->getUser() ||
+                    $vitrine->getOwner() !== $this->getUser()
+                    )
+                ) {
+                    throw $this->createAccessDeniedException(
+                        "Vous ne pouvez pas modifier cette vitrine."
+                        );
+                }
+                
+                $form = $this->createForm(VitrineType::class, $vitrine);
+                $form->handleRequest($request);
+                
+                if ($form->isSubmitted() && $form->isValid()) {
+                    
+                    /** @var UploadedFile|null $imageFile */
+                    $imageFile = $form->get('imageFile')->getData();
+                    
+                    if ($imageFile) {
+                        $uploadsDir = $this->getParameter('kernel.project_dir') . '/public/uploads/vitrines';
+                        
+                        $originalName = pathinfo($imageFile->getClientOriginalName(), PATHINFO_FILENAME);
+                        $safeName     = transliterator_transliterate(
+                            'Any-Latin; Latin-ASCII; [^A-Za-z0-9_] remove; Lower()',
+                            $originalName
+                            );
+                        $newFilename  = $safeName.'-'.uniqid().'.'.$imageFile->guessExtension();
+                        
+                        $imageFile->move($uploadsDir, $newFilename);
+                        
+                        $vitrine->setImageFilename($newFilename);
+                    }
+                    
+                    $entityManager->flush();
+                    
+                    return $this->redirectToRoute('vitrine_show', [
+                        'id' => $vitrine->getId(),
+                    ], Response::HTTP_SEE_OTHER);
+                }
+                
+                return $this->render('vitrine/edit.html.twig', [
+                    'vitrine' => $vitrine,
+                    'form'    => $form,
+                ]);
     }
 }

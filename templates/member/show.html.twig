@@ -16,6 +16,9 @@
     <dd class="col-sm-9">{{ member.email }}</dd>
   </dl>
 
+  {# Peut gérer : soit admin, soit le membre lui-même #}
+  {% set can_manage = app.user and (is_granted('ROLE_ADMIN') or app.user.id == member.id) %}
+
   <h2 class="h5 mb-3">Vitrines de ce membre</h2>
 
   {% if member.vitrines is empty %}
@@ -37,11 +40,14 @@
     </ul>
   {% endif %}
 
-  <a class="btn btn-primary"
-     href="{{ path('app_member_vitrine_new', { id: member.id }) }}">
-    Créer une nouvelle vitrine pour ce membre
-  </a>
-    <h2 class="h5 mb-3 mt-4">Galeries de ce membre</h2>
+  {% if can_manage %}
+    <a class="btn btn-primary mb-4"
+       href="{{ path('app_member_vitrine_new', { id: member.id }) }}">
+      Créer une nouvelle vitrine pour ce membre
+    </a>
+  {% endif %}
+
+  <h2 class="h5 mb-3 mt-4">Galeries de ce membre</h2>
 
   {% if member.galeries is empty %}
     <p class="text-muted fst-italic">Ce membre n’a pas encore de galerie.</p>
@@ -72,20 +78,26 @@
                  href="{{ path('app_galerie_show', {id: galerie.id}) }}">
                 Voir
               </a>
-              <a class="btn btn-sm btn-outline-primary"
-                 href="{{ path('app_galerie_edit', {id: galerie.id}) }}">
-                Modifier
-              </a>
+
+              {# Modifier autorisé : admin OU créateur #}
+              {% if app.user and (is_granted('ROLE_ADMIN') or (galerie.creator and app.user.id == galerie.creator.id)) %}
+                <a class="btn btn-sm btn-outline-primary"
+                   href="{{ path('app_galerie_edit', {id: galerie.id}) }}">
+                  Modifier
+                </a>
+              {% endif %}
             </td>
           </tr>
         {% endfor %}
       </tbody>
     </table>
-    <a class="btn btn-sm btn-primary"
-     	href="{{ path('app_member_galerie_new', {id: member.id}) }}">
-    	Créer une nouvelle galerie pour ce membre
-    </a>
-    
+
+    {% if can_manage %}
+      <a class="btn btn-sm btn-primary"
+         href="{{ path('app_member_galerie_new', {id: member.id}) }}">
+        Créer une nouvelle galerie pour ce membre
+      </a>
+    {% endif %}
   {% endif %}
 </div>
 {% endblock %}

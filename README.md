@@ -1,198 +1,295 @@
 # KaizoKage
 
-Projet Symfony — Gestion d’inventaire de **figurines d’anime** (vitrines & figurines)
+KaizoKage est une application Symfony permettant de gérer une collection de figurines inspirées d’univers d’anime (One Piece, Naruto, Dragon Ball, etc.).  
+Chaque utilisateur dispose de **vitrines** (inventaires) où sont rangées ses **figurines**, et peut créer des **galeries** (publiques ou privées) qui regroupent certaines figurines.
+
+L’objectif pédagogique est de couvrir :
+- la modélisation de données avec Doctrine (relations 1–N et N–N),
+- les opérations CRUD contextualisées,
+- l’authentification / autorisations,
+- l’upload d’images,
+- un frontend cohérent basé sur Bootstrap.
 
 ---
 
-## Description
+## 1. Modèle fonctionnel
 
-**KaizoKage** est une application web destinée aux collectionneur·se·s de **figurines d’anime** (shōnen, seinen, mecha, etc.).
-Elle permet de recenser vos figurines et de les organiser par **vitrines** (étagères/expositions), avec une interface sobre, claire et extensible.
+### 1.1. Membre (`Member`)
+Représente un utilisateur de l’application.
 
-* **Figurine** : `nom` (*string*), relation **vitrine** (*ManyToOne*).
-* **Vitrine** : `description` (*string/texte*), collection **figurines** (*OneToMany*).
+Champs principaux :
+- `id`
+- `email`
+- `password`
+- `roles` (tableau, inclut au moins `ROLE_USER`)
+- `vitrines` : vitrines dont il est propriétaire
+- `galeries` : galeries qu’il a créées
 
-Cette étape utilise **Symfony 6** + **Doctrine ORM**, intègre **Bootstrap** via la distribution *Start Bootstrap – Shop Homepage* et met en place des gabarits **Twig minimalistes**.
+Particularités :
+- un membre se connecte avec `email` + `mot de passe`,
+- les droits (lecture / écriture) sur vitrines, figurines et galeries dépendent de ce membre et de ses rôles.
+
+### 1.2. Vitrine / Inventaire (`Vitrine`)
+Une vitrine (inventaire) est un “espace de rangement” de figurines, appartenant à un **membre**.
+
+Champs principaux :
+- `id`
+- `description`
+- `owner` : membre propriétaire (relation ManyToOne vers `Member`)
+- `figurines` : figurines contenues dans cette vitrine (OneToMany)
+- `imageFilename` : image associée à la vitrine 
+
+Règles d’accès :
+- un membre ne peut voir et modifier **que ses propres vitrines**,
+- un administrateur (`ROLE_ADMIN`) peut voir / modifier toutes les vitrines.
+
+### 1.3. Figurine / Objet (`Figurine`)
+Une figurine est un objet de collection.
+
+Champs principaux :
+- `id`
+- `nom`
+- `vitrine` : vitrine à laquelle la figurine appartient (ManyToOne)
+- `galeries` : galeries dans lesquelles la figurine apparaît (ManyToMany)
+- `imageFilename` : fichier image de la figurine
+
+Contraintes :
+- chaque figurine appartient à **une seule vitrine**,
+- une figurine peut apparaître dans **plusieurs galeries**.
+
+### 1.4. Galerie (`Galerie`)
+Une galerie est un regroupement de figurines, appartenant à un membre, et pouvant être :
+
+- **publique** (visible par tous),
+- **privée** (visible uniquement par son créateur et l’admin).
+
+Champs principaux :
+- `id`
+- `description`
+- `published` (booléen)
+- `creator` : membre créateur
+- `figurines` : liste de figurines associées (ManyToMany)
+
+Règles d’accès :
+- publique → visible par tous,
+- privée → visible par le créateur ou un admin,
+- édition / suppression → réservée au créateur ou à l’admin.
 
 ---
 
-## Prérequis
+## 2. Installation locale
 
-* PHP compatible Symfony (≥ **8.1** recommandé)
-* **Composer**
-* **Symfony CLI** (recommandé)
-* Base de données configurée (**SQLite** en dev possible)
-* Optionnel : **Migrations/fixtures** si besoin
+### 2.1. Prérequis
 
----
+- PHP 8.1+  
+- Composer  
+- Symfony CLI (recommandé)  
+- SQLite (par défaut) ou un autre SGBD compatible Doctrine  
+- Node / npm (optionnel si tu veux recompiler du front custom)
 
-## Structure actuelle (principaux fichiers)
+### 2.2. Cloner le projet
 
-* **Contrôleurs**
+```bash
+git clone https://github.com/adamnjeh/KaizoKage.git
+cd KaizoKage
+```
 
-  * `src/Controller/HomeController.php` → route **home** (`/`)
-  * `src/Controller/FigurineController.php` → **figurine_index** (`/figurines`), **figurine_show** (`/figurines/{id}`)
-  * `src/Controller/VitrineController.php` → **vitrine_index** (`/vitrines`), **vitrine_show** (`/vitrines/{id}`)
-* **Gabarits Twig**
-
-  * `templates/base.html.twig` (liens CSS/JS du thème via `asset()`, blocs *menu* et *body*)
-  * `templates/home/index.html.twig`
-  * `templates/figurine/index.html.twig`, `templates/figurine/show.html.twig`
-  * `templates/vitrine/index.html.twig`, `templates/vitrine/show.html.twig`
-* **Intégration Start Bootstrap**
-
-  * `public/startbootstrap-shop-homepage-gh-pages/` (fichiers `css/styles.css`, `js/scripts.js`, etc.)
-  * `config/packages/framework.yaml` → `assets.base_path: '/startbootstrap-shop-homepage-gh-pages'`
-* **Menu Bootstrap**
-
-  * `config/packages/bootstrap_menu.yaml` (menu `main`)
-  * Bundle : `camurphy/bootstrap-menu-bundle` installé
-
----
-
-## Installation et exécution
-
-### 1) Dépendances
+### 2.3. Installer les dépendances PHP
 
 ```bash
 composer install
 ```
 
-### 2) Base de données (développement)
+### 2.4. Configuration de l’environnement
+
+Créer un fichier `.env.local` à la racine, au minimum pour la base de données, par exemple :
+
+```env
+APP_ENV=dev
+APP_DEBUG=1
+DATABASE_URL="sqlite:///%kernel.project_dir%/var/data.db"
+```
+
+Tu peux aussi configurer un autre SGBD (MySQL/PostgreSQL) en adaptant `DATABASE_URL`.
+
+### 2.5. Créer la base de données et appliquer les migrations
 
 ```bash
-symfony console doctrine:database:create
-symfony console doctrine:schema:create
-# ou via migrations :
-# symfony console doctrine:migrations:migrate
-# (facultatif) charger fixtures :
-# symfony console doctrine:fixtures:load
+php bin/console doctrine:database:create
+php bin/console doctrine:migrations:migrate
 ```
 
-### 3) Intégrer Start Bootstrap (conformément au guide)
+### 2.6. Charger les données de test (fixtures)
 
-Depuis la racine du projet :
+Les fixtures créent :
+- plusieurs membres (dont un admin),
+- leurs vitrines associées,
+- des figurines avec images,
+- des galeries publiques et privées.
+
+Commande :
 
 ```bash
-cd public
-wget https://github.com/startbootstrap/startbootstrap-shop-homepage/archive/gh-pages.zip
-unzip gh-pages.zip
-# → crée public/startbootstrap-shop-homepage-gh-pages/
+php bin/console doctrine:fixtures:load
 ```
 
-Configurer Symfony pour pointer les assets du thème :
+Confirmer l’écrasement des données si demandé.
 
-`config/packages/framework.yaml`
-
-```yaml
-framework:
-  # ...
-  assets:
-    base_path: '/startbootstrap-shop-homepage-gh-pages'
-```
-
-Grâce à `assets.base_path`, dans `base.html.twig` les appels `{{ asset('css/styles.css') }}` et `{{ asset('js/scripts.js') }}` pointent vers le dossier du thème.
-
-### 4) Menu Bootstrap
-
-Installer le bundle :
+### 2.7. Lancer le serveur Symfony
 
 ```bash
-symfony composer require camurphy/bootstrap-menu-bundle
+symfony serve
 ```
 
-Configuration minimale :
+L’application est alors accessible sur :
 
-`config/packages/bootstrap_menu.yaml`
-
-```yaml
-bootstrap_menu:
-  menus:
-    main:
-      items:
-        home:      { label: 'Accueil',   route: 'home' }
-        figurines: { label: 'Figurines', route: 'figurine_index' }
-        vitrines:  { label: 'Vitrines',  route: 'vitrine_index' }
-```
-
-### 5) Lancer le serveur
-
-```bash
-symfony server:start
-# ou
-symfony serve -d
-```
-
-Ouvrir :
-
-* `/` (Accueil)
-* `/figurines`
-* `/vitrines`
+- `http://127.0.0.1:8000`
 
 ---
 
-## Étapes réalisées
+## 3. Comptes par défaut
 
-* [x] Squelette Symfony + Doctrine (SQLite dev)
-* [x] Entités : **Figurine** (`nom`, `vitrine`), **Vitrine** (`description`, `figurines`)
-* [x] Fixtures de base
-* [x] Contrôleurs : **Home / Figurine / Vitrine** avec routes nommées
-* [x] Twig : `base.html.twig` + pages **home**, **figurine** (*index/show*), **vitrine** (*index/show*)
-* [x] **Bootstrap** via *Start Bootstrap – Shop Homepage* (téléchargé dans `public/...`)
-* [x] Configuration assets : `framework.assets.base_path`
-* [x] **Menu Bootstrap** (bundle installé + `bootstrap_menu.yaml` minimal)
+Les fixtures créent au moins les comptes suivants :
 
----
+### Administrateur
 
-## Dépannage rapide
+- **Email** : `adam@localhost`  
+- **Mot de passe** : `000000`  
+- **Rôle** : `ROLE_ADMIN`
 
-* **Route introuvable**
-  `bin/console debug:router | grep -E 'home|figurine|vitrine'`
-* **Classe contrôleur non trouvée**
-  Vérifier `namespace App\Controller;` et que le nom de classe = nom du fichier.
-* **Template introuvable**
-  Vérifier le chemin `templates/...` et l’appel `return $this->render('...')`.
-* **Page blanche**
-  Contrôler les blocs Twig (`{% block body %}`), vider le cache :
-  `bin/console cache:clear`
+### Utilisateurs simples
+
+- **Email** : `slash@localhost` – mot de passe `000000` – `ROLE_USER`  
+- **Email** : `nami@localhost` – mot de passe `000000` – `ROLE_USER`
+
+L’admin (`adam@localhost`) peut :
+- voir / modifier toutes les vitrines,
+- voir / modifier toutes les figurines,
+- voir / modifier toutes les galeries, y compris privées.
 
 ---
 
-## Auteur
+## 4. Navigation dans l’interface
 
-Projet pédagogique développé par **Adam Njeh** — Encadrant : **Olivier Berger**.
+### 4.1. Barre de navigation principale
+
+En haut de chaque page, la navbar propose :
+
+- **Accueil** → route `home`  
+- **Figurines** → route `app_figurine_index`  
+- **Vitrines** → route `vitrine_index`  
+
+À droite, selon l’état de connexion :
+
+- Si **non connecté** :
+  - bouton **Connexion** → route `app_login`
+- Si **connecté** :
+  - bouton **Mon espace** → route `app_member_show` (profil du membre connecté)
+  - lien **Déconnexion** → route `app_logout`
+
+### 4.2. Page d’accueil (`/`)
+
+- Hero avec logo **KaizoKage**
+- Bouton **Voir les vitrines** → `vitrine_index`
+- Bouton **Parcourir les figurines** → `app_figurine_index`
+
+### 4.3. Vitrines
+
+#### Liste des vitrines — `/vitrines` (`vitrine_index`)
+- Affichage sous forme de cartes avec image, description et nombre de figurines.  
+- Tri via un select :
+  - Description A→Z / Z→A
+  - Plus / moins de figurines
+- Si connecté :
+  - bouton **Nouvelle vitrine** pour créer une vitrine associée à ton compte.
+
+#### Détails d’une vitrine — `/vitrines/{id}` (`vitrine_show`)
+- Détails de la vitrine (description, image, ID)
+- Liste des figurines de cette vitrine, sous forme de cartes
+- Pour le propriétaire ou l’admin :
+  - bouton **Modifier la vitrine**
+- Bouton **Retour à la liste**
+
+### 4.4. Figurines
+
+#### Liste des figurines — `/figurine` (`app_figurine_index`)
+- Grille de cartes avec :
+  - image de la figurine,
+  - nom,
+  - vitrine associée,
+- Champ de recherche en haut pour filtrer **par nom**
+- Bouton **Nouvelle figurine** (si connecté)
+
+Chaque carte propose :
+- un accès à la fiche figurine,
+- un bouton **Modifier** (si autorisé).
+
+#### Détails d’une figurine — `/figurine/{id}` (`app_figurine_show`)
+- Image principale
+- ID, nom, vitrine associée
+- Bouton **Modifier** (si propriétaire ou admin)
+- Formulaire de suppression (si autorisé)
+
+#### Création / édition de figurine
+- Formulaire avec :
+  - nom,
+  - vitrine (filtrée selon l’utilisateur),
+  - galeries possibles (filtrées selon l’utilisateur),
+  - upload de l’image (avec contrainte de format/taille),
+- Preview de l’image choisie avant enregistrement.
+
+### 4.5. Galeries
+
+#### Liste des galeries — `/galerie` (`app_galerie_index`)
+- Tableau listant :
+  - ID
+  - Description
+  - Statut (Publique / Privée)
+- Actions :
+  - **Voir** : accessibles à tous (mais filtre d’accès appliqué dans le contrôleur)
+  - **Modifier** : visible seulement pour le créateur ou l’admin
+
+#### Détails d’une galerie — `/galerie/{id}` (`app_galerie_show`)
+- Description
+- Statut (publiée / privée)
+- Liste des figurines liées, cliquables.
+- Si créateur ou admin :
+  - bouton **Modifier**
+  - bouton de suppression (formulaire avec CSRF)
+
+#### Détails d’une figurine dans le contexte d’une galerie  
+Route : `/galerie/{galerie_id}/figurine/{figurine_id}` (`app_galerie_figurine_show`)
+
+- Affiche la figurine dans le contexte de cette galerie
+- Vérifie que la figurine appartient bien à la galerie
+- Applique les mêmes règles d’accès (publique / privée, créateur, admin).
+
+### 4.6. Espace Membre — `/member/{id}` (`app_member_show`)
+- Informations de base du membre
+- Liste de ses vitrines (avec lien “Voir la vitrine”)
+- Liste de ses galeries (avec actions “Voir” et “Modifier”, conditionnées par les droits)
+- Boutons :
+  - **Créer une nouvelle vitrine pour ce membre**
+  - **Créer une nouvelle galerie pour ce membre**
 
 ---
 
-## Bonus — Améliorations UX
+## 5. Structure des images
 
-* **Navigation claire**
+Les images utilisées dans l’application sont stockées dans :
 
-  * Navbar avec liens explicites **Accueil / Vitrines / Figurin es** (toujours visibles).
-  * Mise en évidence de la page active par route.
+- `public/uploads/figurines/` → images des figurines
+- `public/uploads/vitrines/` → images des vitrines
 
-* **Listes en cartes (Bootstrap 5)**
+Les fixtures utilisent des noms de fichiers prédéfinis (`luffy.jpg`, `naruto.jpg`, etc.).  
+Il est possible de les remplacer par de vraies images en conservant les mêmes noms.
 
-  * **Vitrines** : grille responsive, badge du **nombre de figurines** par vitrine.
-  * **Figurines** : grille responsive avec titres **tronqués** et mise en page propre.
+---
 
-* **Interaction sans backend**
+## 6. Résumé
 
-  * **Recherche instantanée côté client** sur la liste des figurines.
-  * **Tri côté client** des vitrines (Description A→Z/Z→A, **Nb figurines** ↑/↓).
+- **Backend** : modèle Doctrine propre, relations cohérentes (Member/Vitrine/Figurine/Galerie), sécurité appliquée par rôle et par propriétaire.
+- **Frontend** : Bootstrap, design cohérent, pages de listing et détail lisibles.
+- **Admin** : le compte `adam@localhost` (mot de passe `000000`) dispose de tous les droits pour inspection et tests.
 
-* **Liens “stretched” & accessibilité**
-
-  * `.stretched-link` pour rendre **toute la carte cliquable** (avec `.card { position: relative }`).
-  * Focus rings lisibles, badges et contrastes renforcés.
-
-* **Images placeholders unifiées**
-
-  * Globale Twig `placeholder_img` (`UnderConstruction.jpg`) pour **remplacer toutes les images** tant que les photos réelles ne sont pas prêtes.
-
-* **Finitions visuelles**
-
-  * Légère **élévation au survol** des cartes (ombre + translation).
-  * **Reveal on scroll** (IntersectionObserver) pour une apparition fluide des éléments.
-  * **Bootstrap Icons** pour des actions explicites (`bi-heart`, `bi-eye`, etc.).
-  * Toast helper `showToast('...')` pour un feedback utilisateur rapide.
+KaizoKage est prêt à être lancé en local pour démonstration, expérimentation ou extension (nouveaux types d’objets, nouveaux univers, etc.).
