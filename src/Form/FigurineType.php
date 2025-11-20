@@ -31,7 +31,6 @@ class FigurineType extends AbstractType
             ],
         ])
         
-        // Vitrine : filtrée sur le propriétaire (sauf admin)
         ->add('vitrine', EntityType::class, [
             'class'        => Vitrine::class,
             'label'        => 'Vitrine',
@@ -53,7 +52,6 @@ class FigurineType extends AbstractType
             },
             ])
             
-            // Galeries : filtrées sur le créateur (sauf admin)
         ->add('galeries', EntityType::class, [
             'class'        => Galerie::class,
             'label'        => 'Galeries (optionnel)',
@@ -76,7 +74,6 @@ class FigurineType extends AbstractType
             ->setParameter('creator', $currentMember);
             },
             'help'         => 'Sélectionnez une ou plusieurs galeries où apparaît cette figurine.',
-            // IMPORTANT pour ManyToMany : appeler addGalerie/removeGalerie
             'by_reference' => false,
             ])
             

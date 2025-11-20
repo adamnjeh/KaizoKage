@@ -22,7 +22,7 @@ class VitrineController extends AbstractController
         if ($this->isGranted('ROLE_ADMIN')) {
             $vitrines = $repo->findAll();
         } else {
-            $user = $this->getUser(); // Member
+            $user = $this->getUser(); 
             
             if (!$user) {
                 throw $this->createAccessDeniedException();
@@ -44,7 +44,7 @@ class VitrineController extends AbstractController
         if ($this->isGranted('ROLE_ADMIN')) {
             $hasAccess = true;
         } else {
-            $member = $this->getUser(); // Member ou null
+            $member = $this->getUser(); 
             if ($member && $vitrine->getOwner() === $member) {
                 $hasAccess = true;
             }
@@ -112,7 +112,6 @@ class VitrineController extends AbstractController
         Vitrine $vitrine,
         EntityManagerInterface $entityManager
         ): Response {
-            // accès réservé au propriétaire ou admin
             if (
                 !$this->isGranted('ROLE_ADMIN') &&
                 (

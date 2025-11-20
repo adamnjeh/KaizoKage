@@ -22,7 +22,6 @@
       </div>
 
       <div class="row g-4">
-        {# Colonne gauche : aperçu #}
         <div class="col-md-4">
           <div class="card h-100 shadow-sm">
             <div class="card-body">
@@ -47,7 +46,6 @@
           </div>
         </div>
 
-        {# Colonne droite : formulaire #}
         <div class="col-md-8">
           <div class="card shadow-sm">
             <div class="card-body">
@@ -86,7 +84,6 @@
                 {% if form.imageFile is defined %}
                   <div class="mb-3">
                     {{ form_label(form.imageFile, null, { 'label_attr': { 'class': 'form-label' } }) }}
-                    {# on ajoute une classe spécifique pour la détecter en JS #}
                     {{ form_widget(form.imageFile, {
                       'attr': { 'class': 'form-control kk-image-input' }
                     }) }}

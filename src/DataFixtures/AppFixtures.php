@@ -73,23 +73,16 @@ final class AppFixtures extends Fixture
             $member->setPassword($password);
             $manager->persist($member);
             
-            // ----------------------------
-            // CRÉATION DE LA VITRINE
-            // ----------------------------
             $vitrine = new Vitrine();
             $vitrine->setDescription('Vitrine de ' . $email);
             $vitrine->setOwner($member);
             
-            // Image de vitrine selon univers
             if (isset($vitrineImages[$universeKey])) {
                 $vitrine->setImageFilename($vitrineImages[$universeKey]);
             }
             
             $manager->persist($vitrine);
             
-            // ----------------------------
-            // FIGURINES
-            // ----------------------------
             $figurines = [];
             
             foreach ($universes[$universeKey] as $name => $image) {
@@ -101,10 +94,7 @@ final class AppFixtures extends Fixture
                 $manager->persist($figurine);
                 $figurines[] = $figurine;
             }
-            
-            // ----------------------------
-            // GALERIE PUBLIQUE
-            // ----------------------------
+
             $galeriePublique = new Galerie();
             $galeriePublique->setDescription("Galerie publique de $email");
             $galeriePublique->setPublished(true);
@@ -114,10 +104,7 @@ final class AppFixtures extends Fixture
             $galeriePublique->addFigurine($figurines[1]);
             
             $manager->persist($galeriePublique);
-            
-            // ----------------------------
-            // GALERIE PRIVÉE
-            // ----------------------------
+
             $galeriePrivee = new Galerie();
             $galeriePrivee->setDescription("Galerie privée de $email");
             $galeriePrivee->setPublished(false);

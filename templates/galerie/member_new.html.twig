@@ -25,7 +25,6 @@
         <div class="card-body">
           {{ form_start(form) }}
 
-            {# Description de la galerie #}
             {% if form.description is defined %}
               <div class="mb-3">
                 {{ form_label(form.description, null, { label_attr: { class: 'form-label' } }) }}
@@ -39,7 +38,6 @@
               </div>
             {% endif %}
 
-            {# Statut publiée/privée #}
             {% if form.published is defined %}
               <div class="mb-3">
                 {{ form_label(form.published, null, { label_attr: { class: 'form-label' } }) }}
@@ -57,7 +55,6 @@
               </div>
             {% endif %}
 
-            {# Figurines associées #}
             {% if form.figurines is defined %}
               <div class="mb-3">
                 {{ form_label(form.figurines, 'Figurines dans cette galerie', {
@@ -73,7 +70,6 @@
               </div>
             {% endif %}
 
-            {# Champs éventuels restants #}
             {{ form_rest(form) }}
 
             <div class="mt-4 d-flex gap-2">

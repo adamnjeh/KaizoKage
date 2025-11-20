@@ -3,7 +3,6 @@
   {{ form_row(form.nom) }}
   {{ form_row(form.vitrine) }}
 
-  {# Champ pour télécharger ou changer l’image #}
   {% if form.imageFile is defined %}
     {{ form_row(form.imageFile) }}
   {% endif %}

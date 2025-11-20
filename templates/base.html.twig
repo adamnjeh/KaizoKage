@@ -73,13 +73,11 @@
     {% endblock %}
 
 
-    {# PAGE CONTENT #}
     <main class="kk-page">
       {% block body %}{% endblock %}
     </main>
 
 
-    {# FOOTER #}
     <footer class="border-top py-4 mt-5">
       <div class="container text-center small text-secondary">
         KaizoKage · {{ "now"|date("Y") }}
@@ -87,7 +85,6 @@
     </footer>
 
 
-    {# Reveal + Toast scripts #}
     <script>
       document.addEventListener('DOMContentLoaded', () => {
         const io = new IntersectionObserver((entries)=>{
@@ -106,7 +103,6 @@
       };
     </script>
 
-    {# Toast container #}
     <div class="position-fixed bottom-0 end-0 p-3" style="z-index:1080">
       <div id="kk-toast" class="toast align-items-center border-0 shadow" role="status" aria-live="polite" aria-atomic="true">
         <div class="d-flex">

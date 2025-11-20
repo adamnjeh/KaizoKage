@@ -19,17 +19,15 @@ final class FigurineController extends AbstractController
     #[Route(name: 'app_figurine_index', methods: ['GET'])]
     public function index(FigurineRepository $figurineRepository, EntityManagerInterface $em): Response
     {
-        // Admin : voit toutes les figurines
         if ($this->isGranted('ROLE_ADMIN')) {
             $figurines = $figurineRepository->findAll();
         } else {
-            $user = $this->getUser(); // Member
+            $user = $this->getUser();
             
             if (!$user) {
                 throw $this->createAccessDeniedException();
             }
             
-            // Figurines dont la vitrine appartient au membre connecté
             $qb = $em->createQueryBuilder();
             $qb->select('f')
             ->from(\App\Entity\Figurine::class, 'f')
@@ -51,7 +49,7 @@ final class FigurineController extends AbstractController
     {
         $figurine = new Figurine();
         
-        $user    = $this->getUser();               // Member ou null
+        $user    = $this->getUser();               
         $isAdmin = $this->isGranted('ROLE_ADMIN');
         
         $form = $this->createForm(FigurineType::class, $figurine, [
@@ -62,7 +60,6 @@ final class FigurineController extends AbstractController
         
         if ($form->isSubmitted() && $form->isValid()) {
             
-            // Sécurité serveur : un membre ne peut utiliser que SES vitrines/galeries
             if (!$isAdmin) {
                 if (!$user) {
                     throw $this->createAccessDeniedException();
@@ -146,7 +143,6 @@ final class FigurineController extends AbstractController
     #[Route('/{id}/edit', name: 'app_figurine_edit', methods: ['GET', 'POST'])]
     public function edit(Request $request, Figurine $figurine, EntityManagerInterface $entityManager): Response
     {
-        // contrôle d’accès sur la figurine actuelle (avant modification)
         $this->assertFigurineAccess($figurine);
         
         $user    = $this->getUser();
@@ -160,7 +156,6 @@ final class FigurineController extends AbstractController
         
         if ($form->isSubmitted() && $form->isValid()) {
             
-            // Re-sécurité côté serveur : empêcher de déplacer la figurine vers une vitrine/galerie d’un autre membre
             if (!$isAdmin) {
                 if (!$user) {
                     throw $this->createAccessDeniedException();
@@ -227,13 +222,12 @@ final class FigurineController extends AbstractController
     
     private function assertFigurineAccess(Figurine $figurine): void
     {
-        // Admin : accès total
         if ($this->isGranted('ROLE_ADMIN')) {
             return;
         }
         
-        $user  = $this->getUser();                     // Member ou null
-        $owner = $figurine->getVitrine()?->getOwner(); // Member ou null
+        $user  = $this->getUser();                     
+        $owner = $figurine->getVitrine()?->getOwner(); 
         
         if (!$user || !$owner || $user !== $owner) {
             throw $this->createAccessDeniedException(

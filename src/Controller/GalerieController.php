@@ -22,12 +22,10 @@ final class GalerieController extends AbstractController
         #[MapEntity(id: 'galerie_id')] Galerie $galerie,
         #[MapEntity(id: 'figurine_id')] Figurine $figurine
         ): Response {
-            // sécurité 1 : la figurine doit appartenir à la galerie
             if (!$galerie->getFigurines()->contains($figurine)) {
                 throw $this->createNotFoundException("Figurine introuvable dans cette galerie.");
             }
             
-            // sécurité 2 : même accès que pour show()
             $this->assertGalerieViewAccess($galerie);
             
             return $this->render('galerie/figurine_show.html.twig', [
@@ -67,17 +65,15 @@ final class GalerieController extends AbstractController
     #[Route(name: 'app_galerie_index', methods: ['GET'])]
     public function index(GalerieRepository $galerieRepository, EntityManagerInterface $em): Response
     {
-        // Admin : voit toutes les galeries
         if ($this->isGranted('ROLE_ADMIN')) {
             $galeries = $galerieRepository->findAll();
         } else {
-            $user = $this->getUser(); // Member
+            $user = $this->getUser(); 
             
             if (!$user) {
                 throw $this->createAccessDeniedException();
             }
             
-            // Galeries publiques OU galeries privées du membre
             $qb = $em->createQueryBuilder();
             $qb->select('g')
             ->from(\App\Entity\Galerie::class, 'g')
@@ -128,7 +124,6 @@ final class GalerieController extends AbstractController
     #[Route('/{id}/edit', name: 'app_galerie_edit', methods: ['GET', 'POST'])]
     public function edit(Request $request, Galerie $galerie, EntityManagerInterface $entityManager): Response
     {
-        // modification réservée au créateur ou à l’admin
         $this->assertGalerieOwnerAccess($galerie);
         
         $form = $this->createForm(GalerieType::class, $galerie);
@@ -151,7 +146,6 @@ final class GalerieController extends AbstractController
     #[Route('/{id}', name: 'app_galerie_delete', methods: ['POST'])]
     public function delete(Request $request, Galerie $galerie, EntityManagerInterface $entityManager): Response
     {
-        // suppression réservée au créateur ou à l’admin
         $this->assertGalerieOwnerAccess($galerie);
         
         if ($this->isCsrfTokenValid('delete'.$galerie->getId(), $request->getPayload()->getString('_token'))) {
@@ -172,12 +166,10 @@ final class GalerieController extends AbstractController
     
     private function assertGalerieViewAccess(Galerie $galerie): void
     {
-        // Admin : accès total
         if ($this->isGranted('ROLE_ADMIN')) {
             return;
         }
         
-        // Galerie publique : accessible à tous les utilisateurs connectés
         if (method_exists($galerie, 'isPublished') && $galerie->isPublished()) {
             return;
         }
@@ -185,7 +177,6 @@ final class GalerieController extends AbstractController
             return;
         }
         
-        // Sinon : seulement le créateur
         $user    = $this->getUser();
         $creator = $galerie->getCreator();
         

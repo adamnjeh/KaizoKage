@@ -16,7 +16,6 @@
     <dd class="col-sm-9">{{ member.email }}</dd>
   </dl>
 
-  {# Peut gérer : soit admin, soit le membre lui-même #}
   {% set can_manage = app.user and (is_granted('ROLE_ADMIN') or app.user.id == member.id) %}
 
   <h2 class="h5 mb-3">Vitrines de ce membre</h2>
@@ -79,7 +78,6 @@
                 Voir
               </a>
 
-              {# Modifier autorisé : admin OU créateur #}
               {% if app.user and (is_granted('ROLE_ADMIN') or (galerie.creator and app.user.id == galerie.creator.id)) %}
                 <a class="btn btn-sm btn-outline-primary"
                    href="{{ path('app_galerie_edit', {id: galerie.id}) }}">

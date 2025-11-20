@@ -23,7 +23,7 @@ class GalerieType extends AbstractType
         ->add('published')
         ->add('figurines', EntityType::class, [
             'class' => Figurine::class,
-            'choice_label' => 'nom',      // IMPORTANT
+            'choice_label' => 'nom',      
             'multiple' => true,
             'expanded' => false,
             'by_reference' => false,

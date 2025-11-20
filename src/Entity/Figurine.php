@@ -78,7 +78,6 @@ class Figurine
     {
         if (!$this->galeries->contains($galerie)) {
             $this->galeries->add($galerie);
-            // côté inverse ManyToMany
             $galerie->addFigurine($this);
         }
         
